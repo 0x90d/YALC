@@ -6,6 +6,8 @@ YALC is (yet another) lossless cutter for video files. It's basically a GUI for 
 
 # Requirements
 FFmpeg and FFprobe is required but included in release builds.
+Windows 10 or higher
+You need to have the codec installed of the video you want to cut
 
 # License
 YALC is licensed under GPLv3  
