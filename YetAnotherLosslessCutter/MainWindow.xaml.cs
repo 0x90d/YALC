@@ -33,15 +33,10 @@ namespace YetAnotherLosslessCutter
             e.Effects = DragDropEffects.Copy;
         }
 
-        
-        private void TimelineSlider_PreviewMouseUp(object sender, MouseButtonEventArgs e) 
+
+        private void TimelineSlider_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
-            vm.CurrentPosition = TimeSpan.FromMilliseconds(TimelineSlider.Value); 
-        }
-        void MediaElement1_MediaOpened(object sender, RoutedEventArgs e)
-        {
-            TimelineSlider.Maximum = MediaElement1.NaturalDuration.TimeSpan.TotalMilliseconds;
-            TimelineSlider.Value = 0;
+            vm.CurrentPosition = TimeSpan.FromMilliseconds(TimelineSlider.Value);
         }
     }
 }

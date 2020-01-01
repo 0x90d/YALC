@@ -136,6 +136,8 @@ namespace YetAnotherLosslessCutter
                 SourceFileName = Path.GetFileName(_SourceFile);
                 ffmpeg.NewProject(_SourceFile);
                 SourceInfo = ffprobe.GetInfos(_SourceFile);
+                host.TimelineSlider.Maximum = SourceInfo.Duration.TotalMilliseconds;
+                host.TimelineSlider.Value = 0;
                 MaxPosition = SourceInfo.Duration;
                 RaisePropertyChanged(nameof(Title));
                 host.MediaElement1.Source = new Uri(_SourceFile);
@@ -208,8 +210,9 @@ namespace YetAnotherLosslessCutter
             host.MediaElement1.Play();
             host.MediaElement1.Pause();
             host.MediaElement1.Position = currentPos;
-            host.TimelineSlider.Value = currentPos.TotalMilliseconds;
         });
+
+
         public RelayCommand CutVideo => new RelayCommand(async () =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;

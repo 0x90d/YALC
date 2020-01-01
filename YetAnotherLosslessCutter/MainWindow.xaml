@@ -53,7 +53,6 @@
                 x:Name="MediaElement1"
                 Grid.Row="1"
                 LoadedBehavior="Manual"
-                MediaOpened="MediaElement1_MediaOpened"
                 ScrubbingEnabled="True"
                 Volume="0" />
             <Grid Grid.Row="2" Background="{StaticResource MahApps.Brushes.SemiTransparentGray}">

@@ -22,7 +22,7 @@ using System.Runtime.CompilerServices;
 
 static class YALCConstants
 {
-    public const string ASSEMBLY_VERSION = "1.0.0.0";
-    public const string ASSEMBLY_INFORMATIONAL_VERSION = "v1.0.0";
+    public const string ASSEMBLY_VERSION = "1.0.1.0";
+    public const string ASSEMBLY_INFORMATIONAL_VERSION = "v1.0.1";
     public const string ASSEMBLY_FILE_VERSION = ASSEMBLY_VERSION;
 }
