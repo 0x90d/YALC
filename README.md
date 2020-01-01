@@ -2,7 +2,7 @@
 YALC is (yet another) lossless cutter for video files. It's basically a GUI for ffmpeg focused on easy use.
 
 # Screenshots
-![windows](https://user-images.githubusercontent.com/46010672/71631809-9cc60000-2c02-11ea-849d-f590639e5aa8.jpg)
+![windows](https://user-images.githubusercontent.com/46010672/71644164-e32b6580-2cbb-11ea-8729-e5f2e12d55af.jpg)
 
 # Requirements
 FFmpeg and FFprobe is required but included in release builds.
