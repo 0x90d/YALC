@@ -260,7 +260,6 @@ namespace YetAnotherLosslessCutter
         });
         public RelayCommand DeleteSource => new RelayCommand(async () =>
        {
-           host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
            var result = await host.ShowMessageAsync("Confirmation", $"Delete {SourceFile}?", MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
            if (result != MessageDialogResult.Affirmative) return;
            host.MediaElement1.Stop();
