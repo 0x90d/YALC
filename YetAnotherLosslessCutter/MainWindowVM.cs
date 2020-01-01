@@ -25,7 +25,7 @@ namespace YetAnotherLosslessCutter
         readonly MetroDialogSettings dialogSettings = new MetroDialogSettings
         {
             AnimateShow = false,
-            AnimateHide = false,
+            AnimateHide = false
         };
         public MainWindowVM(MainWindow mainWindow)
         {

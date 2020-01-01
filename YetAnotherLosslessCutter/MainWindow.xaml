@@ -18,6 +18,7 @@
     PreviewDragEnter="mediaPlayerElement_DragOver"
     PreviewDragOver="mediaPlayerElement_DragOver"
     PreviewDrop="mediaPlayerElement_Drop"
+    ShowDialogsOverTitleBar="False"
     TitleCharacterCasing="Normal"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
