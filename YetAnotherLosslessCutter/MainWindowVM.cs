@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Windows;
@@ -17,7 +18,7 @@ namespace YetAnotherLosslessCutter
         readonly FfmpegUtil ffmpeg = new FfmpegUtil();
         readonly FfprobeUtil ffprobe = new FfprobeUtil();
         readonly MainWindow host;
-        Track timeLineTrack;
+        Track timeLineTrack => host.TimelineSlider.Template.FindName("PART_Track", host.TimelineSlider) as Track;
         ProgressDialogController progressDialogController;
         public string Title => $"YALC - {YALCConstants.ASSEMBLY_INFORMATIONAL_VERSION}";
         MediaInfo SourceInfo;
@@ -47,77 +48,48 @@ namespace YetAnotherLosslessCutter
             progressDialogController?.SetMessage($"{Math.Round(obj.Progress * 100)}%");
         }
 
+        public ObservableCollection<ProjectSettings> ProjectSegmentList { get; } =
+            new ObservableCollection<ProjectSettings>();
+        ProjectSettings _SelectedSegment;
 
-
-        TimeSpan _CurrentPosition = TimeSpan.Zero;
-        public TimeSpan CurrentPosition
+        public ProjectSettings SelectedSegment
         {
-            get => _CurrentPosition;
+            get => _SelectedSegment;
             set
             {
-                if (value > MaxPosition) return;
-                if (!Set(() => CurrentPosition, ref _CurrentPosition, value)) return;
-                host.TimelineSlider.Value = _CurrentPosition.TotalMilliseconds;
-                host.MediaElement1.Position = _CurrentPosition;
-                RaisePropertyChanged(nameof(CurrentPositionDouble));
-            }
-        }
-        TimeSpan _LeftPosition = TimeSpan.Zero;
-        public TimeSpan LeftPosition
-        {
-            get => _LeftPosition;
-            set
-            {
-                if (value > MaxPosition) return;
-                if (!Set(() => LeftPosition, ref _LeftPosition, value)) return;
-                CurrentPosition = _LeftPosition;
-                RaisePropertyChanged(nameof(LeftPositionDouble));
-            }
-        }
-        TimeSpan _RightPosition = TimeSpan.Zero;
-        public TimeSpan RightPosition
-        {
-            get => _RightPosition;
-            set
-            {
-                if (value > MaxPosition || value < LeftPosition) return;
-                if (!Set(() => RightPosition, ref _RightPosition, value)) return;
-                CurrentPosition = _RightPosition;
-                RaisePropertyChanged(nameof(RightPositionDouble));
-            }
-        }
-
-        TimeSpan _MaxPosition;
-        TimeSpan MaxPosition
-        {
-            get => _MaxPosition;
-            set
-            {
-                if (!Set(() => MaxPosition, ref _MaxPosition, value)) return;
-                RaisePropertyChanged(nameof(MaxPositionDouble));
-                _RightPosition = MaxPosition;
-                RaisePropertyChanged(nameof(RightPosition));
-                RaisePropertyChanged(nameof(RightPositionDouble));
+                if (!Set(() => SelectedSegment, ref _SelectedSegment, value)) return;
+                if (value == null)
+                {
+                    if (ProjectSegmentList.Count == 0)
+                    {
+                        //Clear everything
+                        host.MediaElement1.Stop();
+                        host.MediaElement1.Close();
+                        host.MediaElement1.Source = null;
+                        SourceFile = string.Empty;
+                        return;
+                    }
+                    //Select previous segment
+                    SelectedSegment = ProjectSegmentList[^1];
+                    return;
+                }
+                //Do nothing if this is the first segment
+                if (ProjectSegmentList.Count == 1) return;
+                //Otherwise, update cut draw area
+                host.CutMarker.X1 = 0d;
+                host.CutMarker.X2 = 0d;
+                host.TimelineSlider.Value = value.CutFrom.TotalMilliseconds;
+                Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() => { })).Wait();
+                MarkerTimeline(0);
+                host.TimelineSlider.Value = value.CutTo.TotalMilliseconds;
+                Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() => { })).Wait();
+                MarkerTimeline(1);
             }
         }
 
-        public double MaxPositionDouble
-        {
-            get => MaxPosition.TotalMilliseconds;
-        }
-        public double CurrentPositionDouble
-        {
-            get => _CurrentPosition.TotalMilliseconds;
-            set => CurrentPosition = TimeSpan.FromMilliseconds(value);
-        }
-        public double LeftPositionDouble
-        {
-            get => _LeftPosition.TotalMilliseconds;
-        }
-        public double RightPositionDouble
-        {
-            get => _RightPosition.TotalMilliseconds;
-        }
+
+        public bool MergeSegments { get; set; }
+
 
         string _SourceFileName;
         public string SourceFileName
@@ -139,11 +111,13 @@ namespace YetAnotherLosslessCutter
                 }
 
                 SourceFileName = Path.GetFileName(_SourceFile);
-                ffmpeg.NewProject(_SourceFile);
                 SourceInfo = ffprobe.GetInfos(_SourceFile);
+                var project = new ProjectSettings(host) { SourceFile = _SourceFile };
                 host.TimelineSlider.Maximum = SourceInfo.Duration.TotalMilliseconds;
                 host.TimelineSlider.Value = 0;
-                MaxPosition = SourceInfo.Duration;
+                project.MaxDuration = SourceInfo.Duration;
+                ProjectSegmentList.Add(project);
+                SelectedSegment = project;
                 RaisePropertyChanged(nameof(Title));
                 host.MediaElement1.Source = new Uri(_SourceFile);
                 host.MediaElement1.Play();
@@ -153,55 +127,76 @@ namespace YetAnotherLosslessCutter
         void CloseProject()
         {
             SourceFileName = string.Empty;
-            RightPosition = TimeSpan.Zero;
-            LeftPosition = TimeSpan.Zero;
-            CurrentPosition = TimeSpan.Zero;
-            MaxPosition = TimeSpan.Zero;
             host.CutMarker.X1 = 0d;
             host.CutMarker.X2 = 0d;
+            ProjectSegmentList.Clear();
         }
         public RelayCommand SetLeftPosition => new RelayCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            LeftPosition = host.MediaElement1.Position;
+            SelectedSegment.CutFrom = host.MediaElement1.Position;
             MarkerTimeline(0);
         });
         public RelayCommand SetRightPosition => new RelayCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            RightPosition = host.MediaElement1.Position;
+            SelectedSegment.CutTo = host.MediaElement1.Position;
             MarkerTimeline(1);
 
+        });
+        public RelayCommand AddNewSegment => new RelayCommand(() =>
+        {
+            var project = new ProjectSettings(host)
+            {
+                SourceFile = SourceFile,
+                MaxDuration = SourceInfo.Duration,
+                CutTo = SourceInfo.Duration,
+                CutFrom = SelectedSegment?.CutTo ?? TimeSpan.Zero,
+            };
+            ProjectSegmentList.Add(project);
+            SelectedSegment = project;
+            host.TimelineSlider.Value = project.CutFrom.TotalMilliseconds;
+        });
+        public RelayCommand DeleteSelectedSegment => new RelayCommand(() =>
+        {
+            if (SelectedSegment == null) return;
+            ProjectSegmentList.Remove(SelectedSegment);
+        });
+
+        public RelayCommand RemoveAllSegments => new RelayCommand(() =>
+        {
+            SelectedSegment = null;
+            ProjectSegmentList.Clear();
         });
         public RelayCommand Jump1FrameForward => new RelayCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            CurrentPosition += TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
+            SelectedSegment.CurrentPosition += TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
         });
         public RelayCommand Jump1SecondForward => new RelayCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            CurrentPosition += TimeSpan.FromSeconds(1);
+            SelectedSegment.CurrentPosition += TimeSpan.FromSeconds(1);
         });
         public RelayCommand Jump10SecondForward => new RelayCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            CurrentPosition += TimeSpan.FromSeconds(10);
+            SelectedSegment.CurrentPosition += TimeSpan.FromSeconds(10);
         });
         public RelayCommand Jump1FrameBackward => new RelayCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            CurrentPosition -= TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
+            SelectedSegment.CurrentPosition -= TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
         });
         public RelayCommand Jump1SecondBackward => new RelayCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            CurrentPosition -= TimeSpan.FromSeconds(1);
+            SelectedSegment.CurrentPosition -= TimeSpan.FromSeconds(1);
         });
         public RelayCommand Jump10SecondBackward => new RelayCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            CurrentPosition -= TimeSpan.FromSeconds(10);
+            SelectedSegment.CurrentPosition -= TimeSpan.FromSeconds(10);
         });
         public RelayCommand PlayVideo => new RelayCommand(() => host.MediaElement1.Play());
         public RelayCommand PauseVideo => new RelayCommand(() => host.MediaElement1.Pause());
@@ -221,21 +216,45 @@ namespace YetAnotherLosslessCutter
         public RelayCommand CutVideo => new RelayCommand(async () =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            ffmpeg.settings.CutFrom = LeftPosition;
-            ffmpeg.settings.CutTo = RightPosition < LeftPosition ? SourceInfo.Duration : RightPosition;
-            ffmpeg.settings.OutputFile = Path.ChangeExtension(SourceFile, $"-{LeftPosition:hh\\.mm\\.ss\\.fff}-{RightPosition:hh\\.mm\\.ss\\.fff}{Path.GetExtension(SourceFile)}");
+
             host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
             progressDialogController = await host.ShowProgressAsync("Please wait...", "0%", settings: dialogSettings);
             try
             {
-                await ffmpeg.Cut();
+                var fileList = new List<string>();
+                for (int i = 0; i < ProjectSegmentList.Count; i++)
+                {
+                    var projectSettingse = ProjectSegmentList[i];
+                    projectSettingse.CutTo = projectSettingse.CutTo < projectSettingse.CutFrom
+                        ? SourceInfo.Duration
+                        : projectSettingse.CutTo;
+                    ffmpeg.settings = projectSettingse;
+                    ffmpeg.settings.OutputFile = Path.ChangeExtension(SourceFile,
+                        $"-{projectSettingse.CutFrom:hh\\.mm\\.ss\\.fff}-{projectSettingse.CutTo:hh\\.mm\\.ss\\.fff}{Path.GetExtension(SourceFile)}");
+                    fileList.Add(ffmpeg.settings.OutputFile);
+                    progressDialogController.SetTitle($"Please wait... ({i + 1}/{ProjectSegmentList.Count})");
+                    await ffmpeg.Cut();
+                }
+
+                if (MergeSegments)
+                {
+                    progressDialogController.SetTitle("Please wait... merging files");
+                    progressDialogController.SetIndeterminate();
+                    await ffmpeg.Merge(Path.ChangeExtension(SourceFile, $"_merged{Path.GetExtension(SourceFile)}"), fileList);
+                    foreach (var file in fileList)
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch { }
+                }
                 await progressDialogController.CloseAsync();
             }
             catch (Exception ex)
             {
                 await progressDialogController.CloseAsync();
                 host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Error;
-                await host.ShowMessageAsync("Error", ex.ToString(), settings:  dialogSettings);
+                await host.ShowMessageAsync("Error", ex.ToString(), settings: dialogSettings);
             }
             host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.None;
         });
@@ -296,8 +315,7 @@ namespace YetAnotherLosslessCutter
         {
             if (string.IsNullOrEmpty(SourceFile) == false && host.MediaElement1.NaturalDuration.HasTimeSpan)
             {
-                if (timeLineTrack == null)
-                    timeLineTrack = host.TimelineSlider.Template.FindName("PART_Track", host.TimelineSlider) as Track;
+
                 Point relativePoint = timeLineTrack.Thumb.TransformToAncestor(host.TimelineGrid).Transform(new Point(0, 0));
                 if (pos == 0 & (host.CutMarker.X2 == 0d || relativePoint.X > host.CutMarker.X2))
                     host.CutMarker.X2 = host.TimelineSlider.ActualWidth;

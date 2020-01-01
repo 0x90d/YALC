@@ -36,7 +36,8 @@ namespace YetAnotherLosslessCutter
 
         private void TimelineSlider_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
-            vm.CurrentPosition = TimeSpan.FromMilliseconds(TimelineSlider.Value);
+            if (vm.SelectedSegment != null)
+                vm.SelectedSegment.CurrentPosition = TimeSpan.FromMilliseconds(TimelineSlider.Value);
         }
     }
 }

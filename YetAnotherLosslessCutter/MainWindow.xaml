@@ -29,13 +29,121 @@
         <KeyBinding Key="S" Command="{Binding SetLeftPosition}" />
         <KeyBinding Key="D" Command="{Binding DeleteSource}" />
         <KeyBinding Key="C" Command="{Binding CutVideo}" />
+        <KeyBinding
+            Key="N"
+            Command="{Binding AddNewSegment}"
+            Modifiers="Ctrl" />
     </Window.InputBindings>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0" />
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
-        <!--<ListBox Grid.Column="0" />-->
+        <GroupBox
+            Grid.Column="0"
+            Controls:HeaderedControlHelper.HeaderBackground="{StaticResource MahApps.Brushes.Gray10}"
+            Header="Segment List">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ListBox
+                    x:Name="SegmentListbox"
+                    Grid.Row="0"
+                    MinWidth="200"
+                    ItemsSource="{Binding ProjectSegmentList}"
+                    SelectedItem="{Binding SelectedSegment}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,10,0,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBlock>
+                                    <Run>Duration:</Run>
+                                    <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\:fff}}" />
+                                </TextBlock>
+                                <Viewbox
+                                    Grid.Row="1"
+                                    Width="300"
+                                    Height="3"
+                                    Margin="0,10,0,0"
+                                    Stretch="Fill">
+                                    <Grid>
+                                        <Border
+                                            Width="{Binding MaxPositionDouble, Mode=OneWay}"
+                                            BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                                            BorderThickness="2" />
+                                        <Line
+                                            Margin="0,2,0,0"
+                                            VerticalAlignment="Center"
+                                            Focusable="False"
+                                            IsHitTestVisible="False"
+                                            Stroke="#16EA16"
+                                            StrokeThickness="4"
+                                            X1="{Binding LeftPositionDouble, Mode=OneWay}"
+                                            X2="{Binding RightPositionDouble, Mode=OneWay}" />
+                                    </Grid>
+                                </Viewbox>
+                                <Rectangle
+                                    Grid.Row="2"
+                                    Height="1"
+                                    Margin="0,10,0,0"
+                                    SnapsToDevicePixels="True"
+                                    Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                                    StrokeDashArray="8 8"
+                                    StrokeThickness="1" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <Grid Grid.Row="1" Background="{StaticResource MahApps.Brushes.SemiTransparentGray}">
+                    <ToolBar ToolBarTray.IsLocked="True">
+                        <Button Command="{Binding RemoveAllSegments}" ToolTip="Remove All">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="Red"
+                                    Kind="DeleteSweep" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding DeleteSelectedSegment}" ToolTip="Remove selected segment">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="Red"
+                                    Kind="Delete" />
+                            </StackPanel>
+                        </Button>
+                        <Controls:ToggleSwitch
+                            Margin="5"
+                            Content="Merge segments"
+                            FontSize="12"
+                            IsChecked="{Binding MergeSegments}"
+                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                        <Button Command="{Binding AddNewSegment}" ToolTip="Add new segment (Ctrl+N)">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Kind="PlusCircle" />
+                                <TextBlock
+                                    Margin="5,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Text="Add new segment" />
+                            </StackPanel>
+                        </Button>
+                    </ToolBar>
+                </Grid>
+            </Grid>
+        </GroupBox>
+
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -157,7 +265,7 @@
                     </Button>
                 </StackPanel>
             </Grid>
-            <Grid Grid.Row="3" Background="#262C34">
+            <Grid Grid.Row="3" Background="#292C34">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -199,7 +307,7 @@
                     VerticalAlignment="Center"
                     FontSize="14"
                     IsHitTestVisible="False"
-                    Text="{Binding CurrentPosition, StringFormat={}{0:hh\\:mm\\:ss\\:fff}}" />
+                    Text="{Binding SelectedSegment.CurrentPosition, StringFormat={}{0:hh\\:mm\\:ss\\:fff}}" />
                 <StackPanel
                     Grid.Row="2"
                     Margin="0,0,0,10"
@@ -222,18 +330,18 @@
                         Focusable="False"
                         Foreground="{StaticResource MahApps.Brushes.IdealForeground}"
                         FractionalSecondsDigitsCount="3"
-                        Maximum="{Binding MaxPosition}"
+                        Maximum="{Binding SelectedSegment.MaxDuration}"
                         ToolTip="Start time"
-                        Value="{Binding LeftPosition, UpdateSourceTrigger=PropertyChanged}" />
+                        Value="{Binding SelectedSegment.CutFrom, UpdateSourceTrigger=PropertyChanged}" />
                     <xctk:TimeSpanUpDown
                         MinWidth="100"
                         Margin="5,0,5,0"
                         Focusable="False"
                         Foreground="{StaticResource MahApps.Brushes.IdealForeground}"
                         FractionalSecondsDigitsCount="3"
-                        Maximum="{Binding MaxPosition}"
+                        Maximum="{Binding SelectedSegment.MaxDuration}"
                         ToolTip="End time"
-                        Value="{Binding RightPosition, UpdateSourceTrigger=PropertyChanged}" />
+                        Value="{Binding SelectedSegment.CutTo, UpdateSourceTrigger=PropertyChanged}" />
                     <Button
                         MinWidth="25"
                         Margin="5,0,5,0"
@@ -246,50 +354,55 @@
                         FontWeight="Bold"
                         ToolTip="Set end time (E)" />
                 </StackPanel>
-                <StackPanel
+                <Grid
                     Grid.Row="3"
-                    Margin="0,0,0,10"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
-                    <Button
-                        MinWidth="200"
-                        Margin="5,0,5,0"
-                        Command="{Binding CutVideo}"
-                        Focusable="False"
-                        ToolTip="Cut (C)">
-                        <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconMaterial
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Foreground="#16EA16"
-                                Kind="ContentCut" />
-                            <TextBlock
-                                Margin="5,0,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Text="Cut" />
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        MinWidth="200"
-                        Margin="5,0,5,0"
-                        Command="{Binding DeleteSource}"
-                        Focusable="False"
-                        ToolTip="Delete Source File (D)">
-                        <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconMaterial
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Foreground="Red"
-                                Kind="Delete" />
-                            <TextBlock
-                                Margin="5,0,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Text="Delete Source" />
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                    Margin="0,10,0,0"
+                    Background="#303030">
+                    <StackPanel
+                        Margin="0,10,0,10"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
+                        <Button
+                            MinWidth="200"
+                            Margin="5,0,5,0"
+                            Command="{Binding CutVideo}"
+                            Focusable="False"
+                            ToolTip="Cut (C)">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="#16EA16"
+                                    Kind="ContentCut" />
+                                <TextBlock
+                                    Margin="5,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Text="Cut" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            MinWidth="200"
+                            Margin="5,0,5,0"
+                            Command="{Binding DeleteSource}"
+                            Focusable="False"
+                            ToolTip="Delete Source File (D)">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="Red"
+                                    Kind="Delete" />
+                                <TextBlock
+                                    Margin="5,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Text="Delete Source" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
             </Grid>
         </Grid>
 

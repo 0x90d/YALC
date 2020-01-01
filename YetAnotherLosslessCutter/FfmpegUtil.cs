@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -30,10 +31,7 @@ namespace YetAnotherLosslessCutter
         public ProjectSettings settings;
         public FfmpegUtil() => GetFfmpegPath(ref FfmpegPath);
 
-        public void NewProject(string sourceFile)
-        {
-            settings = new ProjectSettings { SourceFile = sourceFile };
-        }
+
 
         public async Task Cut()
         {
@@ -72,6 +70,57 @@ namespace YetAnotherLosslessCutter
             }
             if (ffmpegProcess != null && ffmpegProcess.ExitCode != 0)
                 throw new Exception("Failed to cut. Uncheck 'Include all streams' and try again. Otherwise run ffmpeg yourself and see what reports to you");
+        }
+
+        public async Task Merge(string outputName, List<string> files)
+        {
+            var sb = new StringBuilder();
+            foreach (var file in files)
+            {
+                if (File.Exists(file))
+                    sb.AppendLine($"file '{file.Replace("'", @"\'")}'");
+            }
+
+            var tempFile = Path.GetTempFileName();
+            File.WriteAllText(tempFile, sb.ToString());
+
+            using var ffmpegProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    Arguments = $" -f concat -safe 0 -i \"{tempFile}\" -c copy -map_metadata 0 -y \"{outputName}\"",
+                    FileName = FfmpegPath,
+                    CreateNoWindow = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                }
+            };
+            Task<int> task = null;
+            try
+            {
+                task = ffmpegProcess.WaitForExitAsync(null);
+                await task;
+            }
+            catch (Exception)
+            {
+                if (task?.IsCanceled == true)
+                {
+                    throw new TaskCanceledException(task);
+                }
+                throw;
+            }
+
+            try
+            {
+                File.Delete(tempFile);
+            }
+            catch { }
+
+            if (ffmpegProcess != null && ffmpegProcess.ExitCode != 0)
+                throw new Exception("Failed to merge.");
         }
 
         private void FfmpegProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
