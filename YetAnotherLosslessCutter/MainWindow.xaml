@@ -41,6 +41,7 @@
         </Grid.ColumnDefinitions>
         <GroupBox
             Grid.Column="0"
+            Padding="0"
             Controls:HeaderedControlHelper.HeaderBackground="{StaticResource MahApps.Brushes.Gray10}"
             Header="Segment List">
             <Grid>
@@ -100,7 +101,7 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
                 <Grid Grid.Row="1" Background="#303030">
-                    <ToolBar ToolBarTray.IsLocked="True">
+                    <ToolBar Margin="5,0,5,0" ToolBarTray.IsLocked="True">
                         <Button Command="{Binding RemoveAllSegments}" ToolTip="Remove All">
                             <StackPanel Orientation="Horizontal">
                                 <iconPacks:PackIconMaterial
@@ -119,20 +120,23 @@
                                     Kind="Delete" />
                             </StackPanel>
                         </Button>
+                        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                         <Controls:ToggleSwitch
                             Margin="5"
                             Content="Merge segments"
                             FontSize="12"
                             IsChecked="{Binding MergeSegments}"
                             Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                         <Button Command="{Binding AddNewSegment}" ToolTip="Add new segment (Ctrl+N)">
                             <StackPanel Orientation="Horizontal">
                                 <iconPacks:PackIconMaterial
+                                    Margin="5,0,0,0"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Kind="PlusCircle" />
                                 <TextBlock
-                                    Margin="5,0,0,0"
+                                    Margin="5,0,5,0"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Text="Add new segment" />
