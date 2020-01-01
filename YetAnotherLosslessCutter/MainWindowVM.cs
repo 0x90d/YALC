@@ -157,14 +157,18 @@ namespace YetAnotherLosslessCutter
             SelectedSegment = project;
             host.TimelineSlider.Value = project.CutFrom.TotalMilliseconds;
         });
-        public RelayCommand DeleteSelectedSegment => new RelayCommand(() =>
+        public RelayCommand DeleteSelectedSegment => new RelayCommand(async () =>
         {
             if (SelectedSegment == null) return;
+            var result = await host.ShowMessageAsync("Confirmation", "Remove selected segment from list?", MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
+            if (result != MessageDialogResult.Affirmative) return;
             ProjectSegmentList.Remove(SelectedSegment);
         });
 
-        public RelayCommand RemoveAllSegments => new RelayCommand(() =>
+        public RelayCommand RemoveAllSegments => new RelayCommand(async () =>
         {
+            var result = await host.ShowMessageAsync("Confirmation", "Clear segment list?", MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
+            if (result != MessageDialogResult.Affirmative) return;
             SelectedSegment = null;
             ProjectSegmentList.Clear();
         });

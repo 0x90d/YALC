@@ -99,7 +99,7 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-                <Grid Grid.Row="1" Background="{StaticResource MahApps.Brushes.SemiTransparentGray}">
+                <Grid Grid.Row="1" Background="#303030">
                     <ToolBar ToolBarTray.IsLocked="True">
                         <Button Command="{Binding RemoveAllSegments}" ToolTip="Remove All">
                             <StackPanel Orientation="Horizontal">
