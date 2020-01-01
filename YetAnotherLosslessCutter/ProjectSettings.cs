@@ -1,5 +1,6 @@
 ﻿using GalaSoft.MvvmLight;
 using System;
+using System.Windows;
 
 namespace YetAnotherLosslessCutter
 {
@@ -59,9 +60,9 @@ namespace YetAnotherLosslessCutter
                 if (value > MaxDuration) return;
                 if (!Set(() => CutFrom, ref _CutFrom, value)) return;
                 CurrentPosition = _CutFrom;
-                RaisePropertyChanged(nameof(LeftPositionDouble));
+                RaisePropertyChanged(nameof(LeftMarker));
                 RaisePropertyChanged(nameof(CutDuration));
-                RaisePropertyChanged(nameof(MaxPositionDouble));
+                RaisePropertyChanged(nameof(DurationWidth));
             }
         }
         TimeSpan _CutTo = TimeSpan.Zero;
@@ -73,9 +74,9 @@ namespace YetAnotherLosslessCutter
                 if (value > MaxDuration || value < CutFrom) return;
                 if (!Set(() => CutTo, ref _CutTo, value)) return;
                 CurrentPosition = _CutTo;
-                RaisePropertyChanged(nameof(RightPositionDouble));
+                RaisePropertyChanged(nameof(RightMarker));
                 RaisePropertyChanged(nameof(CutDuration));
-                RaisePropertyChanged(nameof(MaxPositionDouble));
+                RaisePropertyChanged(nameof(DurationWidth));
             }
         }
 
@@ -86,16 +87,16 @@ namespace YetAnotherLosslessCutter
             set
             {
                 if (!Set(() => MaxDuration, ref _MaxDuration, value)) return;
-                RaisePropertyChanged(nameof(MaxPositionDouble));
+                RaisePropertyChanged(nameof(DurationWidth));
                 _CutTo = _MaxDuration;
                 RaisePropertyChanged(nameof(CutTo));
-                RaisePropertyChanged(nameof(RightPositionDouble));
+                RaisePropertyChanged(nameof(RightMarker));
             }
         }
 
         public TimeSpan CutDuration =>  CutTo - CutFrom;
 
-        public double MaxPositionDouble
+        public double DurationWidth
         {
             get => MaxDuration.TotalMilliseconds;
         }
@@ -104,13 +105,13 @@ namespace YetAnotherLosslessCutter
             get => _CurrentPosition.TotalMilliseconds;
             set => CurrentPosition = TimeSpan.FromMilliseconds(value);
         }
-        public double LeftPositionDouble
+        public Point LeftMarker
         {
-            get => _CutFrom.TotalMilliseconds;
+            get => new Point( _CutFrom.TotalMilliseconds, 1);
         }
-        public double RightPositionDouble
+        public Point RightMarker
         {
-            get => _CutTo.TotalMilliseconds;
+            get => new Point(_CutTo.TotalMilliseconds,2);
         }
     }
 }

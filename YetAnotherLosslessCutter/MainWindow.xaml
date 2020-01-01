@@ -74,18 +74,17 @@
                                     Stretch="Fill">
                                     <Grid>
                                         <Border
-                                            Width="{Binding MaxPositionDouble, Mode=OneWay}"
+                                            Width="{Binding DurationWidth, Mode=OneWay}"
                                             BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
                                             BorderThickness="2" />
-                                        <Line
-                                            Margin="0,2,0,0"
-                                            VerticalAlignment="Center"
-                                            Focusable="False"
-                                            IsHitTestVisible="False"
+                                        <Path
+                                            Width="{Binding MarkerRange, Mode=OneWay}"
                                             Stroke="#16EA16"
-                                            StrokeThickness="4"
-                                            X1="{Binding LeftPositionDouble, Mode=OneWay}"
-                                            X2="{Binding RightPositionDouble, Mode=OneWay}" />
+                                            StrokeThickness="4">
+                                            <Path.Data>
+                                                <LineGeometry StartPoint="{Binding LeftMarker}" EndPoint="{Binding RightMarker}" />
+                                            </Path.Data>
+                                        </Path>
                                     </Grid>
                                 </Viewbox>
                                 <Rectangle
