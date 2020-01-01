@@ -18,7 +18,7 @@ namespace YetAnotherLosslessCutter
         readonly FfmpegUtil ffmpeg = new FfmpegUtil();
         readonly FfprobeUtil ffprobe = new FfprobeUtil();
         readonly MainWindow host;
-        Track timeLineTrack => host.TimelineSlider.Template.FindName("PART_Track", host.TimelineSlider) as Track;
+        Track TimeLineTrack => host.TimelineSlider.Template.FindName("PART_Track", host.TimelineSlider) as Track;
         ProgressDialogController progressDialogController;
         public string Title => $"YALC - {YALCConstants.ASSEMBLY_INFORMATIONAL_VERSION}";
         MediaInfo SourceInfo;
@@ -315,7 +315,7 @@ namespace YetAnotherLosslessCutter
             if (string.IsNullOrEmpty(SourceFile) == false && host.MediaElement1.NaturalDuration.HasTimeSpan)
             {
 
-                Point relativePoint = timeLineTrack.Thumb.TransformToAncestor(host.TimelineGrid).Transform(new Point(0, 0));
+                Point relativePoint = TimeLineTrack.Thumb.TransformToAncestor(host.TimelineGrid).Transform(new Point(0, 0));
                 if (pos == 0 & (host.CutMarker.X2 == 0d || relativePoint.X > host.CutMarker.X2))
                     host.CutMarker.X2 = host.TimelineSlider.ActualWidth;
                 if (pos == 0 && relativePoint.X <= host.CutMarker.X2)

@@ -72,7 +72,7 @@ namespace YetAnotherLosslessCutter
                 return result;
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 if (FFProbeProcess != null && !FFProbeProcess.HasExited)
                     try
