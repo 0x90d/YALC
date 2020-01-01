@@ -21,6 +21,11 @@ namespace YetAnotherLosslessCutter
         ProgressDialogController progressDialogController;
         public string Title => $"YALC - {YALCConstants.ASSEMBLY_INFORMATIONAL_VERSION}";
         MediaInfo SourceInfo;
+        readonly MetroDialogSettings dialogSettings = new MetroDialogSettings
+        {
+            AnimateShow = false,
+            AnimateHide = false,
+        };
         public MainWindowVM(MainWindow mainWindow)
         {
             host = mainWindow;
@@ -219,13 +224,8 @@ namespace YetAnotherLosslessCutter
             ffmpeg.settings.CutFrom = LeftPosition;
             ffmpeg.settings.CutTo = RightPosition < LeftPosition ? SourceInfo.Duration : RightPosition;
             ffmpeg.settings.OutputFile = Path.ChangeExtension(SourceFile, $"-{LeftPosition:hh\\.mm\\.ss\\.fff}-{RightPosition:hh\\.mm\\.ss\\.fff}{Path.GetExtension(SourceFile)}");
-            var mySettings = new MetroDialogSettings()
-            {
-                AnimateShow = false,
-                AnimateHide = false,
-            };
             host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
-            progressDialogController = await host.ShowProgressAsync("Please wait...", "0%", settings: mySettings);
+            progressDialogController = await host.ShowProgressAsync("Please wait...", "0%", settings: dialogSettings);
             try
             {
                 await ffmpeg.Cut();
@@ -235,19 +235,14 @@ namespace YetAnotherLosslessCutter
             {
                 await progressDialogController.CloseAsync();
                 host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Error;
-                await host.ShowMessageAsync("Error", ex.ToString(), settings: mySettings);
+                await host.ShowMessageAsync("Error", ex.ToString(), settings:  dialogSettings);
             }
             host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.None;
         });
         public RelayCommand DeleteSource => new RelayCommand(async () =>
        {
-           var mySettings = new MetroDialogSettings()
-           {
-               AnimateShow = false,
-               AnimateHide = false,
-           };
            host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
-           var result = await host.ShowMessageAsync("Confirmation", $"Delete {SourceFile}?", MessageDialogStyle.AffirmativeAndNegative, settings: mySettings);
+           var result = await host.ShowMessageAsync("Confirmation", $"Delete {SourceFile}?", MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
            if (result != MessageDialogResult.Affirmative) return;
            host.MediaElement1.Stop();
            host.MediaElement1.Close();
@@ -267,7 +262,7 @@ namespace YetAnotherLosslessCutter
            catch (Exception ex)
            {
                host.MediaElement1.Source = new Uri(SourceFile);
-               await host.ShowMessageAsync("Failed to delete file", ex.ToString(), MessageDialogStyle.Affirmative, settings: mySettings);
+               await host.ShowMessageAsync("Failed to delete file", ex.ToString(), MessageDialogStyle.Affirmative, settings: dialogSettings);
            }
        });
         static T Do<T>(Func<T> action, TimeSpan retryInterval, int maxAttemptCount = 3)
