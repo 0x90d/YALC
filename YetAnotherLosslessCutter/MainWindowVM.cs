@@ -41,11 +41,13 @@ namespace YetAnotherLosslessCutter
 
         private void Ffmpeg_Progress(ProgressEventArgs obj)
         {
-            Application.Current.Dispatcher.Invoke(() => host.TaskbarInfo.ProgressValue = obj.Progress,
+            var progress = obj.Progress;
+            if (progress < 0d || progress > 1d) return;
+            Application.Current.Dispatcher.Invoke(() => host.TaskbarInfo.ProgressValue = progress,
                 System.Windows.Threading.DispatcherPriority.Background);
 
-            progressDialogController?.SetProgress(obj.Progress);
-            progressDialogController?.SetMessage($"{Math.Round(obj.Progress * 100)}%");
+            progressDialogController?.SetProgress(progress);
+            progressDialogController?.SetMessage($"{Math.Round(progress * 100)}%");
         }
 
         public ObservableCollection<ProjectSettings> ProjectSegmentList { get; } =
