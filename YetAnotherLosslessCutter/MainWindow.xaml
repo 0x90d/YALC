@@ -26,6 +26,26 @@
     <Window.Resources>
         <xctk:InverseBoolConverter x:Key="InverseBoolConverter" />
     </Window.Resources>
+    <Controls:MetroWindow.RightWindowCommands>
+        <Controls:WindowCommands>
+            <Button Command="{Binding CheckForUpdate}">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial
+                        Margin="5,0,0,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Kind="Update" />
+                    <TextBlock
+                        Margin="5,0,5,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="16"
+                        Text="Check for new version" />
+                </StackPanel>
+            </Button>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.RightWindowCommands>
+
     <Controls:MetroWindow.Flyouts>
         <Controls:FlyoutsControl>
             <Controls:Flyout

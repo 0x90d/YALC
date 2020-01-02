@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Windows;
@@ -217,7 +218,20 @@ namespace YetAnotherLosslessCutter
             host.MediaElement1.Pause();
             host.MediaElement1.Position = currentPos;
         });
+        public RelayCommand CheckForUpdate => new RelayCommand(async () =>
+        {
+            var hasUpdate = await UpdateUtil.IsNewVersionAvailable();
+            if (hasUpdate != true)
+            {
+                await host.ShowMessageAsync("Information", hasUpdate == null ? "Failed to check for updates" : "You're using the latest version", settings: dialogSettings);
+                return;
+            }
 
+            var result = await host.ShowMessageAsync("Information", "New version available. Do you want to visit the download site?",
+                 MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
+            if (result == MessageDialogResult.Negative) return;
+            Process.Start(new ProcessStartInfo("https://github.com/0x90d/YALC/releases/latest") { UseShellExecute = true });
+        });
 
         public RelayCommand CutVideo => new RelayCommand(async () =>
         {
@@ -241,7 +255,7 @@ namespace YetAnotherLosslessCutter
                     ffmpeg.settings.OutputFile = Settings.Instance.SaveToSourceFolder
                         ? Path.ChangeExtension(SourceFile, fileEnding)
                         : Path.Combine(Settings.Instance.OutputDirectory, $"{Path.GetFileNameWithoutExtension(SourceFile)}{fileEnding}");
-                  
+
                     fileList.Add(ffmpeg.settings.OutputFile);
                     progressDialogController.SetTitle($"Please wait... ({i + 1}/{ProjectSegmentList.Count})");
                     await ffmpeg.Cut();
