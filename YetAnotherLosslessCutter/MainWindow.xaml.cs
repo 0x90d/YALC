@@ -15,6 +15,12 @@ namespace YetAnotherLosslessCutter
             vm = new MainWindowVM(this);
             DataContext = vm;
             InitializeComponent();
+            Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Settings.SaveSettings();
         }
 
         private void mediaPlayerElement_Drop(object sender, DragEventArgs e)

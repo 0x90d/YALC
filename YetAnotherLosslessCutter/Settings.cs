@@ -1,22 +1,36 @@
 ﻿using GalaSoft.MvvmLight;
+using System.Diagnostics;
+using System.IO;
 using System.Text.Json.Serialization;
 
 namespace YetAnotherLosslessCutter
 {
-   public sealed class Settings : ViewModelBase
+    public sealed class Settings : ViewModelBase
     {
         static Settings instance;
         [JsonIgnore]
         public static Settings Instance => instance ??= new Settings();
 
+        private static string settingsLocation;
 
+        private static string SettingsLocation => settingsLocation ??=
+            Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "Settings.json");
+        public static void SaveSettings()
+        {
+            File.WriteAllText(SettingsLocation, System.Text.Json.JsonSerializer.Serialize(instance));
+        }
+        public static void LoadSettings()
+        {
+            if (File.Exists(SettingsLocation))
+                instance = System.Text.Json.JsonSerializer.Deserialize<Settings>(File.ReadAllText(SettingsLocation));
+        }
 
         private bool _RemoveAudio;
         [JsonIgnore]
         public bool RemoveAudio
         {
             get => _RemoveAudio;
-            set => Set(() => RemoveAudio, ref _RemoveAudio, value); 
+            set => Set(() => RemoveAudio, ref _RemoveAudio, value);
         }
 
         private bool _MergeSegments;
