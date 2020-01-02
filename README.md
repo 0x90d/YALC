@@ -1,4 +1,4 @@
-# YALC - [Latest release](https://github.com/0x90d/YALC/releases)
+# YALC - [Latest release](https://github.com/0x90d/YALC/releases/latest)
 YALC is (yet another) lossless cutter for video files. It's basically a GUI for ffmpeg focused on easy use.
 
 # Screenshots
