@@ -1,5 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -8,7 +7,7 @@ namespace YetAnotherLosslessCutter
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : MetroWindow
+    public partial class MainWindow
     {
         readonly MainWindowVM vm;
         public MainWindow()

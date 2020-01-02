@@ -1,6 +1,8 @@
 ﻿using GalaSoft.MvvmLight;
+using GalaSoft.MvvmLight.Command;
 using System;
 using System.Windows;
+using System.Windows.Media;
 
 namespace YetAnotherLosslessCutter
 {
@@ -8,6 +10,12 @@ namespace YetAnotherLosslessCutter
     {
         readonly MainWindow host;
         public ProjectSettings(MainWindow window) => host = window;
+
+        public RelayCommand DeleteThisSegment => new RelayCommand(() =>
+        {
+            //You really shouldn't do this
+            ((MainWindowVM) host.DataContext).DeleteSegment(this);
+        });
 
         string _SourceFile;
         public string SourceFile
@@ -37,6 +45,9 @@ namespace YetAnotherLosslessCutter
             set => Set(() => IncludeAllStreams, ref _IncludeAllStreams, value);
         }
 
+        ImageSource _Thumbnail;
+        public ImageSource Thumbnail => _Thumbnail;
+
         TimeSpan _CurrentPosition = TimeSpan.Zero;
         public TimeSpan CurrentPosition
         {
@@ -63,7 +74,14 @@ namespace YetAnotherLosslessCutter
                 RaisePropertyChanged(nameof(LeftMarker));
                 RaisePropertyChanged(nameof(CutDuration));
                 RaisePropertyChanged(nameof(DurationWidth));
+                UpdateThumbnail();
             }
+        }
+
+        async void UpdateThumbnail()
+        {
+            _Thumbnail = await FfmpegUtil.GetThumbnail(SourceFile, CutFrom);
+            RaisePropertyChanged(nameof(Thumbnail));
         }
         TimeSpan _CutTo = TimeSpan.Zero;
         public TimeSpan CutTo
