@@ -90,8 +90,6 @@ namespace YetAnotherLosslessCutter
         }
 
 
-        public bool MergeSegments { get; set; }
-
 
         string _SourceFileName;
         public string SourceFileName
@@ -237,18 +235,26 @@ namespace YetAnotherLosslessCutter
                         ? SourceInfo.Duration
                         : projectSettingse.CutTo;
                     ffmpeg.settings = projectSettingse;
-                    ffmpeg.settings.OutputFile = Path.ChangeExtension(SourceFile,
-                        $"-{projectSettingse.CutFrom:hh\\.mm\\.ss\\.fff}-{projectSettingse.CutTo:hh\\.mm\\.ss\\.fff}{Path.GetExtension(SourceFile)}");
+                    //TODO: Guess file ending can be customizable as well, someday...
+                    var fileEnding =
+                        $"-{projectSettingse.CutFrom:hh\\.mm\\.ss\\.fff}-{projectSettingse.CutTo:hh\\.mm\\.ss\\.fff}{Path.GetExtension(SourceFile)}";
+                    ffmpeg.settings.OutputFile = Settings.Instance.SaveToSourceFolder
+                        ? Path.ChangeExtension(SourceFile, fileEnding)
+                        : Path.Combine(Settings.Instance.OutputDirectory, $"{Path.GetFileNameWithoutExtension(SourceFile)}{fileEnding}");
+                  
                     fileList.Add(ffmpeg.settings.OutputFile);
                     progressDialogController.SetTitle($"Please wait... ({i + 1}/{ProjectSegmentList.Count})");
                     await ffmpeg.Cut();
                 }
 
-                if (MergeSegments)
+                if (Settings.Instance.MergeSegments)
                 {
                     progressDialogController.SetTitle("Please wait... merging files");
                     progressDialogController.SetIndeterminate();
-                    await ffmpeg.Merge(Path.ChangeExtension(SourceFile, $"_merged{Path.GetExtension(SourceFile)}"), fileList);
+                    var ouputFilename = Settings.Instance.SaveToSourceFolder
+                        ? Path.ChangeExtension(SourceFile, $"_merged{Path.GetExtension(SourceFile)}")
+                        : Path.Combine(Settings.Instance.OutputDirectory, $"{Path.GetFileNameWithoutExtension(SourceFile)}_merged{Path.GetExtension(SourceFile)}");
+                    await FfmpegUtil.Merge(ouputFilename, fileList);
                     foreach (var file in fileList)
                         try
                         {

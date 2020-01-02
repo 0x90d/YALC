@@ -53,7 +53,7 @@ namespace YetAnotherLosslessCutter
                 MessageBox.Show("FFmpeg is missing", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
-    public class ProgressEventArgs : EventArgs
+    public sealed class ProgressEventArgs : EventArgs
     {
         internal ProgressEventArgs(double progress)
         {
@@ -207,7 +207,7 @@ namespace YetAnotherLosslessCutter
             sb.Append($" -t {settings.CutDuration}");
             sb.Append(" -avoid_negative_ts make_zero");
 
-            if (settings.RemoveAudio)
+            if (Settings.Instance.RemoveAudio)
                 sb.Append($" -an {settings.CutFrom}");
             else
                 sb.Append(" -acodec copy");
@@ -215,7 +215,7 @@ namespace YetAnotherLosslessCutter
             sb.Append(" -vcodec copy");
             sb.Append(" -scodec copy");
 
-            if (!settings.IncludeAllStreams)
+            if (!Settings.Instance.IncludeAllStreams)
                 sb.Append(" -map 0");
 
             sb.Append(" -map_metadata 0");

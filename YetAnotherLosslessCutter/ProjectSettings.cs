@@ -30,23 +30,7 @@ namespace YetAnotherLosslessCutter
             get => _OutputFile;
             set => Set(() => OutputFile, ref _OutputFile, value);
         }
-
-        bool _RemoveAudio;
-        public bool RemoveAudio
-        {
-            get => _RemoveAudio;
-            set => Set(() => RemoveAudio, ref _RemoveAudio, value);
-        }
-
-        bool _IncludeAllStreams = true;
-        public bool IncludeAllStreams
-        {
-            get => _IncludeAllStreams;
-            set => Set(() => IncludeAllStreams, ref _IncludeAllStreams, value);
-        }
-
-        ImageSource _Thumbnail;
-        public ImageSource Thumbnail => _Thumbnail;
+        public ImageSource Thumbnail { get; private set; }
 
         TimeSpan _CurrentPosition = TimeSpan.Zero;
         public TimeSpan CurrentPosition
@@ -80,7 +64,7 @@ namespace YetAnotherLosslessCutter
 
         async void UpdateThumbnail()
         {
-            _Thumbnail = await FfmpegUtil.GetThumbnail(SourceFile, CutFrom);
+            Thumbnail = await FfmpegUtil.GetThumbnail(SourceFile, CutFrom);
             RaisePropertyChanged(nameof(Thumbnail));
         }
         TimeSpan _CutTo = TimeSpan.Zero;
@@ -114,22 +98,14 @@ namespace YetAnotherLosslessCutter
 
         public TimeSpan CutDuration =>  CutTo - CutFrom;
 
-        public double DurationWidth
-        {
-            get => MaxDuration.TotalMilliseconds;
-        }
+        public double DurationWidth => MaxDuration.TotalMilliseconds;
         public double CurrentPositionDouble
         {
             get => _CurrentPosition.TotalMilliseconds;
             set => CurrentPosition = TimeSpan.FromMilliseconds(value);
         }
-        public Point LeftMarker
-        {
-            get => new Point( _CutFrom.TotalMilliseconds, 1);
-        }
-        public Point RightMarker
-        {
-            get => new Point(_CutTo.TotalMilliseconds,2);
-        }
+        public Point LeftMarker => new Point( _CutFrom.TotalMilliseconds, 1);
+
+        public Point RightMarker => new Point(_CutTo.TotalMilliseconds,2);
     }
 }
