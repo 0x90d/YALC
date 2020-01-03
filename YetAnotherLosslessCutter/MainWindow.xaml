@@ -198,7 +198,7 @@
                                     </StackPanel>
                                     <Viewbox
                                         Grid.Row="1"
-                                        Width="250"
+                                        Width="220"
                                         Height="3"
                                         Margin="0,10,0,0"
                                         Stretch="Fill">
