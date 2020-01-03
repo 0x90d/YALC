@@ -258,6 +258,8 @@ namespace YetAnotherLosslessCutter
 
                     fileList.Add(ffmpeg.settings.OutputFile);
                     progressDialogController.SetTitle($"Please wait... ({i + 1}/{ProjectSegmentList.Count})");
+                    progressDialogController.SetProgress(0d);
+                    progressDialogController.SetMessage("0%");
                     await ffmpeg.Cut();
                 }
 
@@ -265,6 +267,7 @@ namespace YetAnotherLosslessCutter
                 {
                     progressDialogController.SetTitle("Please wait... merging files");
                     progressDialogController.SetIndeterminate();
+                    host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Indeterminate;
                     var ouputFilename = Settings.Instance.SaveToSourceFolder
                         ? Path.ChangeExtension(SourceFile, $"_merged{Path.GetExtension(SourceFile)}")
                         : Path.Combine(Settings.Instance.OutputDirectory, $"{Path.GetFileNameWithoutExtension(SourceFile)}_merged{Path.GetExtension(SourceFile)}");
