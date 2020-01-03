@@ -338,6 +338,7 @@ namespace YetAnotherLosslessCutter
         public void LoadSourceFile(string file)
         {
             if (!File.Exists(file)) return;
+            SourceFile = null;
             SourceFile = file;
         }
 
