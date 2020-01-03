@@ -166,8 +166,8 @@
                                     BorderBrush="#06CA06"
                                     BorderThickness="2">
                                     <Image
-                                        Width="120"
-                                        Height="70"
+                                        Width="112"
+                                        Height="63"
                                         Source="{Binding Thumbnail}" />
                                 </Border>
 
