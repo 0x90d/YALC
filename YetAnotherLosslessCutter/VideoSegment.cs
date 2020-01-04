@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -10,8 +11,9 @@ namespace YetAnotherLosslessCutter
     sealed class VideoSegment : Segment
     {
         readonly MainWindow host;
+        public VideoSegment() => host = Application.Current.MainWindow as MainWindow;
         public VideoSegment(MainWindow window) => host = window;
-
+        [JsonIgnore]
         public DelegateCommand DeleteThisSegment => new DelegateCommand(() =>
         {
             //You really shouldn't do this
@@ -49,12 +51,14 @@ namespace YetAnotherLosslessCutter
         }
 
         string _SourceFile;
+        [JsonPropertyName("SourceFile")]
         public string SourceFile
         {
             get => _SourceFile;
             set => Set( ref _SourceFile, value);
         }
 
+        [JsonIgnore]
         public string OutputFile
         {
             get
@@ -67,9 +71,11 @@ namespace YetAnotherLosslessCutter
             }
 
         }
-        public ImageSource Thumbnail { get; private set; }
+        [JsonPropertyName("Thumbnail")]
+        public ImageSource Thumbnail { get;  set; }
 
         TimeSpan _CurrentPosition = TimeSpan.Zero;
+        [JsonIgnore]
         public TimeSpan CurrentPosition
         {
             get => _CurrentPosition;
@@ -84,6 +90,7 @@ namespace YetAnotherLosslessCutter
         }
 
         TimeSpan _CutFrom = TimeSpan.Zero;
+        [JsonPropertyName("CutFrom")]
         public TimeSpan CutFrom
         {
             get => _CutFrom;
@@ -106,6 +113,7 @@ namespace YetAnotherLosslessCutter
             OnPropertyChanged(nameof(Thumbnail));
         }
         TimeSpan _CutTo = TimeSpan.Zero;
+        [JsonPropertyName("CutTo")]
         public TimeSpan CutTo
         {
             get => _CutTo;
@@ -123,6 +131,7 @@ namespace YetAnotherLosslessCutter
         }
 
         TimeSpan _MaxDuration;
+        [JsonPropertyName("SourceDuration")]
         public TimeSpan MaxDuration
         {
             get => _MaxDuration;
@@ -136,16 +145,20 @@ namespace YetAnotherLosslessCutter
             }
         }
 
+        [JsonIgnore]
         public TimeSpan CutDuration => CutTo - CutFrom;
 
         public double DurationWidth => MaxDuration.TotalMilliseconds;
+        [JsonIgnore]
         public double CurrentPositionDouble
         {
             get => _CurrentPosition.TotalMilliseconds;
             set => CurrentPosition = TimeSpan.FromMilliseconds(value);
         }
+        [JsonIgnore]
         public Point LeftMarker => new Point(_CutFrom.TotalMilliseconds, 1);
 
+        [JsonIgnore]
         public Point RightMarker => new Point(_CutTo.TotalMilliseconds, 2);
     }
 }

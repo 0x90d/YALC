@@ -11,10 +11,12 @@ namespace YetAnotherLosslessCutter
         [JsonIgnore]
         public static Settings Instance => instance ??= new Settings();
 
+        private static string currentFolder;
+        public static string CurrentFolder =>
+            currentFolder ??= Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
         private static string settingsLocation;
-
         private static string SettingsLocation => settingsLocation ??=
-            Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "Settings.json");
+            Path.Combine(CurrentFolder, "Settings.json");
         public static void SaveSettings()
         {
             File.WriteAllText(SettingsLocation, System.Text.Json.JsonSerializer.Serialize(instance));
