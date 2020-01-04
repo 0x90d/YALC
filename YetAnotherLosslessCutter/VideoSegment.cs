@@ -6,10 +6,10 @@ using System.Windows.Media;
 
 namespace YetAnotherLosslessCutter
 {
-    sealed class ProjectSettings : ViewModelBase
+    sealed class VideoSegment : ViewModelBase
     {
         readonly MainWindow host;
-        public ProjectSettings(MainWindow window) => host = window;
+        public VideoSegment(MainWindow window) => host = window;
 
         public RelayCommand DeleteThisSegment => new RelayCommand(() =>
         {

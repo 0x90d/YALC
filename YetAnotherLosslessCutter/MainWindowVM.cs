@@ -51,11 +51,11 @@ namespace YetAnotherLosslessCutter
             progressDialogController?.SetMessage($"{Math.Round(progress * 100)}%");
         }
 
-        public ObservableCollection<ProjectSettings> ProjectSegmentList { get; } =
-            new ObservableCollection<ProjectSettings>();
-        ProjectSettings _SelectedSegment;
+        public ObservableCollection<VideoSegment> ProjectSegmentList { get; } =
+            new ObservableCollection<VideoSegment>();
+        VideoSegment _SelectedSegment;
 
-        public ProjectSettings SelectedSegment
+        public VideoSegment SelectedSegment
         {
             get => _SelectedSegment;
             set
@@ -113,7 +113,7 @@ namespace YetAnotherLosslessCutter
 
                 SourceFileName = Path.GetFileName(_SourceFile);
                 SourceInfo = ffprobe.GetInfos(_SourceFile);
-                var project = new ProjectSettings(host) { SourceFile = _SourceFile };
+                var project = new VideoSegment(host) { SourceFile = _SourceFile };
                 host.TimelineSlider.Maximum = SourceInfo.Duration.TotalMilliseconds;
                 host.TimelineSlider.Value = 0;
                 project.MaxDuration = SourceInfo.Duration;
@@ -147,7 +147,7 @@ namespace YetAnotherLosslessCutter
         });
         public RelayCommand AddNewSegment => new RelayCommand(() =>
         {
-            var project = new ProjectSettings(host)
+            var project = new VideoSegment(host)
             {
                 SourceFile = SourceFile,
                 MaxDuration = SourceInfo.Duration,
@@ -158,7 +158,7 @@ namespace YetAnotherLosslessCutter
             SelectedSegment = project;
             host.TimelineSlider.Value = project.CutFrom.TotalMilliseconds;
         });
-        public async void DeleteSegment(ProjectSettings segment)
+        public async void DeleteSegment(VideoSegment segment)
         {
             if (segment == null) return;
             var result = await host.ShowMessageAsync("Confirmation", "Remove segment from list?", MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);

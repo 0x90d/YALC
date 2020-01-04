@@ -66,7 +66,7 @@ namespace YetAnotherLosslessCutter
     {
         public event Action<ProgressEventArgs> Progress;
 
-        public ProjectSettings settings;
+        public VideoSegment settings;
 
         public async Task Cut()
         {
@@ -198,7 +198,7 @@ namespace YetAnotherLosslessCutter
         }
 
 
-        static string BuildCommandLine(ProjectSettings settings)
+        static string BuildCommandLine(VideoSegment settings)
         {
             var sb = new StringBuilder();
             sb.Append(" -hide_banner");
