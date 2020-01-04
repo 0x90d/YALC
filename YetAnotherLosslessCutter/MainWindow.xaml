@@ -242,6 +242,12 @@
                         <Separator Margin="0,10,0,10" />
                         <Controls:ToggleSwitch
                             Margin="5"
+                            Content="Auto Start Queue"
+                            FontSize="12"
+                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=AutoStartQueue}"
+                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                        <Controls:ToggleSwitch
+                            Margin="5"
                             Content="Remove Finished Segments From List"
                             FontSize="12"
                             IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=RemoveFinishedSegments}"
@@ -324,6 +330,21 @@
                                         VerticalAlignment="Center"
                                         FontSize="16"
                                         Text="Remove Finished" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding StartQueue}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Foreground="LimeGreen"
+                                        Kind="Play" />
+                                    <TextBlock
+                                        Margin="5,0,5,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="16"
+                                        Text="Start Queue" />
                                 </StackPanel>
                             </Button>
                         </ToolBar>
@@ -673,9 +694,18 @@
                                     Margin="5,0,0,0"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
+                                    Controls:VisibilityHelper.IsVisible="{Binding Source={x:Static local:Settings.Instance}, Path=AutoStartQueue}"
                                     FontSize="16"
                                     FontWeight="Normal"
                                     Text="Start" />
+                                <TextBlock
+                                    Margin="5,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Controls:VisibilityHelper.IsCollapsed="{Binding Source={x:Static local:Settings.Instance}, Path=AutoStartQueue}"
+                                    FontSize="16"
+                                    FontWeight="Normal"
+                                    Text="Add To Queue" />
                             </StackPanel>
                         </Button>
                         <!--<Button

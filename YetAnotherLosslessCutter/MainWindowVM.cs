@@ -258,11 +258,10 @@ namespace YetAnotherLosslessCutter
                 ProcessingQueue.Enqueue(ProjectSegmentList[0]);
                 ProjectSegmentList.RemoveAt(0);
             }
-            if (queueIsBusy)
-                return;
-            queueIsBusy = true;
-            StartQueue();
+            if (Settings.Instance.AutoStartQueue)
+                StartQueue.Execute();
         });
+
 
         //public DelegateCommand DeleteSource => new DelegateCommand(async () =>
         //{
@@ -272,7 +271,7 @@ namespace YetAnotherLosslessCutter
         //    host.MediaElement1.Stop();
         //    host.MediaElement1.Close();
         //    host.MediaElement1.Source = null;
-           
+
         //});
 
         public DelegateCommand PickOutputDirectory => new DelegateCommand(() =>
@@ -342,9 +341,16 @@ namespace YetAnotherLosslessCutter
         }
 
         private bool queueIsBusy;
+        public DelegateCommand StartQueue => new DelegateCommand(() =>
+        {
+            if (queueIsBusy)
+                return;
+            queueIsBusy = true;
 
+            StartQueueInternal();
+        });
 
-        async void StartQueue()
+        async void StartQueueInternal()
         {
             var fileList = new List<VideoSegment>();
 
@@ -360,7 +366,7 @@ namespace YetAnotherLosslessCutter
                 else
                 {
                     //See if this is a new source file
-                    bool isNewSourceFile = ProcessingQueue.IsEmpty || ProcessingQueue.TryPeek(out var nextSegment) && 
+                    bool isNewSourceFile = ProcessingQueue.IsEmpty || ProcessingQueue.TryPeek(out var nextSegment) &&
                                            !videoSegment.SourceFile.Equals(nextSegment.SourceFile);
 
                     if (!Settings.Instance.MergeSegments && Settings.Instance.RemoveFinishedSegments)

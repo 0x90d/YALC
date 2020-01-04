@@ -71,6 +71,13 @@ namespace YetAnotherLosslessCutter
             get => _RemoveFinishedSegments;
             set => Set(ref _RemoveFinishedSegments, value);
         }
+        private bool _AutoStartQueue = true;
+        [JsonPropertyName("AutoStartQueue")]
+        public bool AutoStartQueue
+        {
+            get => _AutoStartQueue;
+            set => Set(ref _AutoStartQueue, value);
+        }
         private string _OutputDirectory = string.Empty;
         [JsonPropertyName("OutputDirectory")]
         public string OutputDirectory
