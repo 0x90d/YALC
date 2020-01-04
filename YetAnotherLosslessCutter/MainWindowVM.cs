@@ -343,6 +343,13 @@ namespace YetAnotherLosslessCutter
         private bool queueIsBusy;
         public DelegateCommand StartQueue => new DelegateCommand(() =>
         {
+            //Re-add failed items
+            for (int i = 0; i < ProcessingQueueList.Count; i++)
+            {
+                if (ProcessingQueueList[i].Status != ProgressStatus.Failed) continue;
+                ProcessingQueueList[i].Status = ProgressStatus.Waiting;
+                ProcessingQueue.Enqueue(ProcessingQueueList[i]);
+            }
             if (queueIsBusy)
                 return;
             queueIsBusy = true;
@@ -362,7 +369,6 @@ namespace YetAnotherLosslessCutter
                 {
                     host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Error;
                     await host.ShowMessageAsync("Error", result.Error.ToString());
-                    ProcessingQueue.Enqueue(videoSegment);
                 }
                 else
                 {

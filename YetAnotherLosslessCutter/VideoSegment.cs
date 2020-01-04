@@ -43,7 +43,7 @@ namespace YetAnotherLosslessCutter
             catch (Exception e)
             {
                 Progress = 0d;
-                Status = ProgressStatus.Idle;
+                Status = ProgressStatus.Failed;
                 return new CuttingTaskResult(false, e);
             }
            

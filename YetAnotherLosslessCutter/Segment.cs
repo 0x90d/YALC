@@ -9,6 +9,7 @@ namespace YetAnotherLosslessCutter
         Waiting,
         Running,
         Merging,
+        Failed,
         Finished
     }
     class Segment : ViewModelBase
@@ -38,7 +39,7 @@ namespace YetAnotherLosslessCutter
             } 
         }
 
-        public bool IsEnabled => Status == ProgressStatus.Idle || Status == ProgressStatus.Finished;
+        public bool IsEnabled => Status == ProgressStatus.Idle || Status == ProgressStatus.Finished || Status == ProgressStatus.Failed;
 
     }
 }
