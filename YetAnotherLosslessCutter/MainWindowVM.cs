@@ -362,6 +362,7 @@ namespace YetAnotherLosslessCutter
                 {
                     host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Error;
                     await host.ShowMessageAsync("Error", result.Error.ToString());
+                    ProcessingQueue.Enqueue(videoSegment);
                 }
                 else
                 {
