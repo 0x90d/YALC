@@ -14,9 +14,10 @@ YALC is (yet another) lossless cutter for video files. It's basically a GUI for 
 - YALC uses ffmpeg / ffprobe (not included) which is licensed under LGPL 2.1 / GPL v2
 - YALC uses MahApps Metro licensed under MIT
 - YALC uses Xceed Toolkit => https://github.com/xceedsoftware/wpftoolkit/blob/master/license.md
-- YALC uses MVVMLight licensed under MIT
-
 
 # Compiling
 - .NET Core 3.1 SDK builds
 - Visual Studio 2019
+
+# Similar projects
+- https://github.com/mifi/lossless-cut
