@@ -75,7 +75,7 @@ namespace YetAnotherLosslessCutter
             get => _CurrentPosition;
             set
             {
-                if (value > MaxDuration) return;
+                if (value > MaxDuration) value = MaxDuration;
                 if (!Set( ref _CurrentPosition, value)) return;
                 host.TimelineSlider.Value = _CurrentPosition.TotalMilliseconds;
                 host.MediaElement1.Position = _CurrentPosition;
@@ -89,7 +89,8 @@ namespace YetAnotherLosslessCutter
             get => _CutFrom;
             set
             {
-                if (value > MaxDuration) return;
+                if (value > MaxDuration) value = MaxDuration;
+                if (value < TimeSpan.Zero) value = TimeSpan.Zero;
                 if (!Set( ref _CutFrom, value)) return;
                 CurrentPosition = _CutFrom;
                 OnPropertyChanged(nameof(LeftMarker));
@@ -110,7 +111,9 @@ namespace YetAnotherLosslessCutter
             get => _CutTo;
             set
             {
-                if (value > MaxDuration || value < CutFrom) return;
+                if ( value < CutFrom) return;
+                if (value > MaxDuration) value = MaxDuration;
+                if (value < TimeSpan.Zero) value = TimeSpan.Zero;
                 if (!Set( ref _CutTo, value)) return;
                 CurrentPosition = _CutTo;
                 OnPropertyChanged(nameof(RightMarker));
