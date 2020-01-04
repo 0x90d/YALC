@@ -21,7 +21,7 @@ using System.Reflection;
 
 static class YALCConstants
 {
-    public const string ASSEMBLY_VERSION = "1.0.2.0";
-    public const string ASSEMBLY_INFORMATIONAL_VERSION = "v1.0.2";
+    public const string ASSEMBLY_VERSION = "1.0.3.0";
+    public const string ASSEMBLY_INFORMATIONAL_VERSION = "v1.0.3";
     public const string ASSEMBLY_FILE_VERSION = ASSEMBLY_VERSION;
 }

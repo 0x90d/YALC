@@ -65,12 +65,10 @@ namespace YetAnotherLosslessCutter
     sealed class FfmpegUtil
     {
         public event Action<ProgressEventArgs> Progress;
-
-        public VideoSegment settings;
-
-        public async Task Cut()
+        
+        public async Task Cut(VideoSegment segment)
         {
-            var commandLine = BuildCommandLine(settings);
+            var commandLine = BuildCommandLine(segment);
 
             using var ffmpegProcess = new Process
             {
@@ -87,7 +85,14 @@ namespace YetAnotherLosslessCutter
                 }
             };
 
-            ffmpegProcess.ErrorDataReceived += FfmpegProcess_ErrorDataReceived;
+            ffmpegProcess.ErrorDataReceived += (sender, e) => {
+                if (e.Data == null) return;
+                var c = FfmpegStatics.ProgressRegex.Matches(e.Data);
+                if (c.Count == 0 || c[0].Groups.Count < 2) return;
+                if (!TimeSpan.TryParse(c[0].Groups[1].Value, out TimeSpan progress)) return;
+
+                Progress?.Invoke(new ProgressEventArgs(progress / segment.CutDuration));
+            };
 
             Task<int> task = null;
             try
@@ -107,13 +112,13 @@ namespace YetAnotherLosslessCutter
                 throw new Exception("Failed to cut. Uncheck 'Include all streams' and try again. Otherwise run ffmpeg yourself and see what reports to you");
         }
 
-        public static async Task Merge(string outputName, List<string> files)
+        public static async Task Merge(string outputName, List<VideoSegment> files)
         {
             var sb = new StringBuilder();
             foreach (var file in files)
             {
-                if (File.Exists(file))
-                    sb.AppendLine($"file '{file.Replace("'", @"\'")}'");
+                if (File.Exists(file.OutputFile))
+                    sb.AppendLine($"file '{file.OutputFile.Replace("'", @"\'")}'");
             }
 
             var tempFile = Path.GetTempFileName();
@@ -187,28 +192,20 @@ namespace YetAnotherLosslessCutter
             }
         }
 
-        private void FfmpegProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            if (e.Data == null) return;
-            var c = FfmpegStatics.ProgressRegex.Matches(e.Data);
-            if (c.Count == 0 || c[0].Groups.Count < 2) return;
-            if (!TimeSpan.TryParse(c[0].Groups[1].Value, out TimeSpan progress)) return;
-
-            Progress?.Invoke(new ProgressEventArgs(progress / settings.CutDuration));
-        }
+      
 
 
-        static string BuildCommandLine(VideoSegment settings)
+        static string BuildCommandLine(VideoSegment segment)
         {
             var sb = new StringBuilder();
             sb.Append(" -hide_banner");
-            sb.Append($" -ss {settings.CutFrom}");
-            sb.Append($" -i \"{settings.SourceFile}\"");
-            sb.Append($" -t {settings.CutDuration}");
+            sb.Append($" -ss {segment.CutFrom}");
+            sb.Append($" -i \"{segment.SourceFile}\"");
+            sb.Append($" -t {segment.CutDuration}");
             sb.Append(" -avoid_negative_ts make_zero");
 
             if (Settings.Instance.RemoveAudio)
-                sb.Append($" -an {settings.CutFrom}");
+                sb.Append($" -an {segment.CutFrom}");
             else
                 sb.Append(" -acodec copy");
 
@@ -221,7 +218,7 @@ namespace YetAnotherLosslessCutter
             sb.Append(" -map_metadata 0");
             sb.Append(" -ignore_unknown");
 
-            sb.Append($" -y \"{settings.OutputFile}\"");
+            sb.Append($" -y \"{segment.OutputFile}\"");
 
             return sb.ToString();
         }

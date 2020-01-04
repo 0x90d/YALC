@@ -25,6 +25,157 @@
     mc:Ignorable="d">
     <Window.Resources>
         <xctk:InverseBoolConverter x:Key="InverseBoolConverter" />
+        <local:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+
+        <DataTemplate x:Key="VideoSegmentItemTemplate">
+            <Grid>
+                <Grid
+                    Margin="0,5,0,0"
+                    Background="Transparent"
+                    IsEnabled="{Binding IsEnabled}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseEnter">
+                            <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
+                                <i:ChangePropertyAction.Value>
+                                    <Visibility>Visible</Visibility>
+                                </i:ChangePropertyAction.Value>
+                            </i:ChangePropertyAction>
+                        </i:EventTrigger>
+                        <i:EventTrigger EventName="MouseLeave">
+                            <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
+                                <i:ChangePropertyAction.Value>
+                                    <Visibility>Collapsed</Visibility>
+                                </i:ChangePropertyAction.Value>
+                            </i:ChangePropertyAction>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Border
+                        Margin="5"
+                        Background="Black"
+                        BorderBrush="#06CA06"
+                        BorderThickness="2">
+                        <Image
+                            Width="112"
+                            Height="63"
+                            Source="{Binding Thumbnail}" />
+                    </Border>
+
+                    <Grid
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock HorizontalAlignment="Center">
+                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Duration: </Run>
+                                <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                            </TextBlock>
+
+                            <TextBlock
+                                Margin="0,5,0,0"
+                                HorizontalAlignment="Center"
+                                Foreground="LightGray">
+                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Start: </Run>
+                                <Run Text="{Binding CutFrom, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}"> ~ End: </Run>
+                                <Run Text="{Binding CutTo, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                            </TextBlock>
+                        </StackPanel>
+                        <Viewbox
+                            Grid.Row="1"
+                            Width="220"
+                            Height="3"
+                            Margin="0,10,0,0"
+                            Stretch="Fill">
+                            <Grid>
+                                <Border
+                                    Width="{Binding DurationWidth, Mode=OneWay}"
+                                    BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                                    BorderThickness="2" />
+                                <Path
+                                    Width="{Binding MarkerRange, Mode=OneWay}"
+                                    Stroke="#16EA16"
+                                    StrokeThickness="4">
+                                    <Path.Data>
+                                        <LineGeometry StartPoint="{Binding LeftMarker}" EndPoint="{Binding RightMarker}" />
+                                    </Path.Data>
+                                </Path>
+                            </Grid>
+                        </Viewbox>
+                    </Grid>
+                    <Button
+                        x:Name="DeleteSegmenButton"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="0,0,10,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        BorderThickness="0"
+                        Command="{Binding DeleteThisSegment}"
+                        Style="{StaticResource MahApps.Styles.Button.MetroSquare}"
+                        ToolTip="Remove selected segment"
+                        Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="Red"
+                                Kind="Delete" />
+                        </StackPanel>
+                    </Button>
+                    <Rectangle
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Height="1"
+                        Margin="0,10,0,5"
+                        SnapsToDevicePixels="True"
+                        Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                        StrokeDashArray="8 8"
+                        StrokeThickness="1" />
+                </Grid>
+                <Grid
+                    Controls:VisibilityHelper.IsCollapsed="{Binding IsEnabled}"
+                    Background="Black"
+                    Opacity="0.7">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center" Text="{Binding ProgressText}" />
+                        <Controls:MetroProgressBar
+                            Width="200"
+                            Margin="10"
+                            Foreground="#16EA16"
+                            IsIndeterminate="{Binding Status, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProgressStatus.Waiting}}"
+                            Maximum="1"
+                            Value="{Binding Progress}" />
+                    </StackPanel>
+                </Grid>
+                <Grid
+                    Controls:VisibilityHelper.IsVisible="{Binding Status, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProgressStatus.Finished}}"
+                    Background="Black"
+                    Opacity="0.8">
+                    <iconPacks:PackIconMaterial
+                        Width="32"
+                        Height="32"
+                        Margin="5,0,0,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Foreground="#16EA16"
+                        Kind="Check" />
+                </Grid>
+            </Grid>
+        </DataTemplate>
     </Window.Resources>
     <Controls:MetroWindow.RightWindowCommands>
         <Controls:WindowCommands>
@@ -78,9 +229,22 @@
                             Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
                         <Controls:ToggleSwitch
                             Margin="5"
+                            Content="Delete Source File From Disk After Finished"
+                            FontSize="12"
+                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=DeleteSourceFileAfterDone}"
+                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                        <Controls:ToggleSwitch
+                            Margin="5"
                             Content="Include All Streams"
                             FontSize="12"
                             IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=IncludeAllStreams}"
+                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                        <Separator Margin="0,10,0,10" />
+                        <Controls:ToggleSwitch
+                            Margin="5"
+                            Content="Remove Finished Segments From List"
+                            FontSize="12"
+                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=RemoveFinishedSegments}"
                             Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
                         <Controls:ToggleSwitch
                             Margin="5"
@@ -88,12 +252,19 @@
                             FontSize="12"
                             IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=SaveToSourceFolder}"
                             Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
-                        <TextBox
-                            Margin="5"
-                            Controls:TextBoxHelper.Watermark="Output Directory..."
-                            FontSize="12"
-                            IsEnabled="{Binding Source={x:Static local:Settings.Instance}, Path=SaveToSourceFolder, Converter={StaticResource InverseBoolConverter}}"
-                            Text="{Binding Source={x:Static local:Settings.Instance}, Path=OutputDirectory}" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox
+                                MinWidth="200"
+                                Margin="5"
+                                Controls:TextBoxHelper.Watermark="Output Directory..."
+                                FontSize="12"
+                                IsEnabled="{Binding Source={x:Static local:Settings.Instance}, Path=SaveToSourceFolder, Converter={StaticResource InverseBoolConverter}}"
+                                Text="{Binding Source={x:Static local:Settings.Instance}, Path=OutputDirectory}" />
+                            <Button
+                                Command="{Binding PickOutputDirectory}"
+                                Content="..."
+                                Style="{StaticResource MahApps.Styles.Button.MetroSquare}" />
+                        </StackPanel>
                     </StackPanel>
 
                 </Grid>
@@ -118,199 +289,128 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
-        <GroupBox
-            Grid.Column="0"
-            Padding="0"
-            Controls:HeaderedControlHelper.HeaderBackground="{StaticResource MahApps.Brushes.Gray10}"
-            Header="Segment List">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <ListBox
-                    Grid.Row="0"
-                    MinWidth="200"
-                    ItemsSource="{Binding ProjectSegmentList}"
-                    SelectedItem="{Binding SelectedSegment}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,5,0,0" Background="Transparent">
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="MouseEnter">
-                                        <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
-                                            <i:ChangePropertyAction.Value>
-                                                <Visibility>Visible</Visibility>
-                                            </i:ChangePropertyAction.Value>
-                                        </i:ChangePropertyAction>
-                                    </i:EventTrigger>
-                                    <i:EventTrigger EventName="MouseLeave">
-                                        <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
-                                            <i:ChangePropertyAction.Value>
-                                                <Visibility>Collapsed</Visibility>
-                                            </i:ChangePropertyAction.Value>
-                                        </i:ChangePropertyAction>
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Border
-                                    Margin="5"
-                                    Background="Black"
-                                    BorderBrush="#06CA06"
-                                    BorderThickness="2">
-                                    <Image
-                                        Width="112"
-                                        Height="63"
-                                        Source="{Binding Thumbnail}" />
-                                </Border>
-
-                                <Grid
-                                    Grid.Row="0"
-                                    Grid.Column="1"
-                                    Margin="10">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <StackPanel>
-                                        <TextBlock HorizontalAlignment="Center">
-                                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Duration: </Run>
-                                            <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                                        </TextBlock>
-
-                                        <TextBlock
-                                            Margin="0,5,0,0"
-                                            HorizontalAlignment="Center"
-                                            Foreground="LightGray">
-                                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Start: </Run>
-                                            <Run Text="{Binding CutFrom, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}"> ~ End: </Run>
-                                            <Run Text="{Binding CutTo, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                                        </TextBlock>
-                                    </StackPanel>
-                                    <Viewbox
-                                        Grid.Row="1"
-                                        Width="220"
-                                        Height="3"
-                                        Margin="0,10,0,0"
-                                        Stretch="Fill">
-                                        <Grid>
-                                            <Border
-                                                Width="{Binding DurationWidth, Mode=OneWay}"
-                                                BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
-                                                BorderThickness="2" />
-                                            <Path
-                                                Width="{Binding MarkerRange, Mode=OneWay}"
-                                                Stroke="#16EA16"
-                                                StrokeThickness="4">
-                                                <Path.Data>
-                                                    <LineGeometry StartPoint="{Binding LeftMarker}" EndPoint="{Binding RightMarker}" />
-                                                </Path.Data>
-                                            </Path>
-                                        </Grid>
-                                    </Viewbox>
-                                </Grid>
-                                <Button
-                                    x:Name="DeleteSegmenButton"
-                                    Grid.Row="0"
-                                    Grid.Column="1"
-                                    Margin="0,0,10,0"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Top"
-                                    BorderThickness="0"
-                                    Command="{Binding DeleteThisSegment}"
-                                    Style="{StaticResource MahApps.Styles.Button.MetroSquare}"
-                                    ToolTip="Remove selected segment"
-                                    Visibility="Collapsed">
-                                    <StackPanel Orientation="Horizontal">
-                                        <iconPacks:PackIconMaterial
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            Foreground="Red"
-                                            Kind="Delete" />
-                                    </StackPanel>
-                                </Button>
-                                <Rectangle
-                                    Grid.Row="1"
-                                    Grid.Column="0"
-                                    Grid.ColumnSpan="2"
-                                    Height="1"
-                                    Margin="0,10,0,5"
-                                    SnapsToDevicePixels="True"
-                                    Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
-                                    StrokeDashArray="8 8"
-                                    StrokeThickness="1" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                    <ListBox.ItemContainerStyle>
-                        <Style BasedOn="{StaticResource MahApps.Styles.ListBoxItem}" TargetType="ListBoxItem">
-                            <Style.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Controls:ItemHelper.SelectedBackgroundBrush" Value="#375472" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                </ListBox>
-                <Grid Grid.Row="1" Background="#303030">
-                    <ToolBar Margin="5,0,5,0" ToolBarTray.IsLocked="True">
-                        <Button Command="{Binding RemoveAllSegments}" ToolTip="Remove All">
-                            <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconMaterial
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Foreground="Red"
-                                    Kind="DeleteSweep" />
-                            </StackPanel>
-                        </Button>
-                        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
-                        <ToggleButton
-                            Margin="5"
-                            FontSize="16"
-                            IsChecked="{Binding ElementName=settingsFlyout, Path=IsOpen}"
-                            Style="{StaticResource MahApps.Styles.ToggleButton.ToolBarOverflow}">
-                            <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconMaterial
-                                    Margin="5,0,0,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Kind="Settings" />
-                                <TextBlock
-                                    Margin="5,0,5,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Text="Settings" />
-                            </StackPanel>
-                        </ToggleButton>
-                        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
-                        <Button Command="{Binding AddNewSegment}" ToolTip="Add new segment (Ctrl+N)">
-                            <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconMaterial
-                                    Margin="5,0,0,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Kind="PlusCircle" />
-                                <TextBlock
-                                    Margin="5,0,5,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontSize="16"
-                                    Text="Add new segment" />
-                            </StackPanel>
-                        </Button>
-                    </ToolBar>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="2*" />
+            </Grid.RowDefinitions>
+            <GroupBox
+                Grid.Row="0"
+                Padding="0"
+                Controls:ControlsHelper.ContentCharacterCasing="Normal"
+                Controls:HeaderedControlHelper.HeaderBackground="{StaticResource MahApps.Brushes.Gray10}"
+                Header="Processing Queue">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ListBox
+                        Grid.Row="0"
+                        MinWidth="200"
+                        ItemTemplate="{DynamicResource VideoSegmentItemTemplate}"
+                        ItemsSource="{Binding ProcessingQueueList}" />
+                    <Grid Grid.Row="1" Background="#303030">
+                        <ToolBar Margin="5,0,5,0" ToolBarTray.IsLocked="True">
+                            <Button Command="{Binding ClearFinishedQueue}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Kind="NotificationClearAll" />
+                                    <TextBlock
+                                        Margin="5,0,5,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="16"
+                                        Text="Remove Finished" />
+                                </StackPanel>
+                            </Button>
+                        </ToolBar>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </GroupBox>
+            </GroupBox>
+            <GroupBox
+                Grid.Row="1"
+                Padding="0"
+                Controls:ControlsHelper.ContentCharacterCasing="Normal"
+                Controls:HeaderedControlHelper.HeaderBackground="{StaticResource MahApps.Brushes.Gray10}"
+                Header="Segment List">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ListBox
+                        Grid.Row="0"
+                        MinWidth="200"
+                        ItemTemplate="{DynamicResource VideoSegmentItemTemplate}"
+                        ItemsSource="{Binding ProjectSegmentList}"
+                        SelectedItem="{Binding SelectedSegment}">
+
+                        <ListBox.ItemContainerStyle>
+                            <Style BasedOn="{StaticResource MahApps.Styles.ListBoxItem}" TargetType="ListBoxItem">
+                                <Setter Property="IsHitTestVisible" Value="{Binding Status, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProgressStatus.Idle}}" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Controls:ItemHelper.SelectedBackgroundBrush" Value="#375472" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                    <Grid Grid.Row="1" Background="#303030">
+                        <ToolBar Margin="5,0,5,0" ToolBarTray.IsLocked="True">
+                            <Button Command="{Binding RemoveAllSegments}" ToolTip="Remove All">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Foreground="Red"
+                                        Kind="DeleteSweep" />
+                                </StackPanel>
+                            </Button>
+                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                            <ToggleButton
+                                Margin="5"
+                                FontSize="16"
+                                IsChecked="{Binding ElementName=settingsFlyout, Path=IsOpen}"
+                                Style="{StaticResource MahApps.Styles.ToggleButton.ToolBarOverflow}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial
+                                        Margin="5,0,0,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Kind="Settings" />
+                                    <TextBlock
+                                        Margin="5,0,5,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Text="Settings" />
+                                </StackPanel>
+                            </ToggleButton>
+                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                            <Button Command="{Binding AddNewSegment}" ToolTip="Add new segment (Ctrl+N)">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial
+                                        Margin="5,0,0,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Kind="PlusCircle" />
+                                    <TextBlock
+                                        Margin="5,0,5,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="16"
+                                        Text="Add new segment" />
+                                </StackPanel>
+                            </Button>
+                        </ToolBar>
+                    </Grid>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
 
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
@@ -544,6 +644,13 @@
                             Kind="VolumeMute"
                             ToolTip="Info: Audio will be removed"
                             Visibility="{Binding Source={x:Static local:Settings.Instance}, Path=RemoveAudio, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <iconPacks:PackIconMaterial
+                            Margin="10,0,0,0"
+                            Background="Transparent"
+                            Foreground="DarkOrange"
+                            Kind="DeleteForever"
+                            ToolTip="Info: Source File will be deleted from disk"
+                            Visibility="{Binding Source={x:Static local:Settings.Instance}, Path=DeleteSourceFileAfterDone, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     </StackPanel>
 
                     <StackPanel
@@ -568,10 +675,10 @@
                                     VerticalAlignment="Center"
                                     FontSize="16"
                                     FontWeight="Normal"
-                                    Text="Cut" />
+                                    Text="Start" />
                             </StackPanel>
                         </Button>
-                        <Button
+                        <!--<Button
                             MinWidth="200"
                             Margin="5,0,5,0"
                             Command="{Binding DeleteSource}"
@@ -591,7 +698,7 @@
                                     FontWeight="Normal"
                                     Text="Delete Source" />
                             </StackPanel>
-                        </Button>
+                        </Button>-->
                     </StackPanel>
                 </Grid>
 

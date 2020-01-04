@@ -1,7 +1,7 @@
-﻿using GalaSoft.MvvmLight;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Text.Json.Serialization;
+using YetAnotherLosslessCutter.MVVM;
 
 namespace YetAnotherLosslessCutter
 {
@@ -30,7 +30,7 @@ namespace YetAnotherLosslessCutter
         public bool RemoveAudio
         {
             get => _RemoveAudio;
-            set => Set(() => RemoveAudio, ref _RemoveAudio, value);
+            set => Set(ref _RemoveAudio, value);
         }
 
         private bool _MergeSegments;
@@ -38,7 +38,7 @@ namespace YetAnotherLosslessCutter
         public bool MergeSegments
         {
             get => _MergeSegments;
-            set => Set(() => MergeSegments, ref _MergeSegments, value);
+            set => Set(ref _MergeSegments, value);
         }
 
         private bool _IncludeAllStreams = true;
@@ -46,7 +46,14 @@ namespace YetAnotherLosslessCutter
         public bool IncludeAllStreams
         {
             get => _IncludeAllStreams;
-            set => Set(() => IncludeAllStreams, ref _IncludeAllStreams, value);
+            set => Set(ref _IncludeAllStreams, value);
+        }
+        private bool _DeleteSourceFileAfterDone;
+        [JsonIgnore]
+        public bool DeleteSourceFileAfterDone
+        {
+            get => _DeleteSourceFileAfterDone;
+            set => Set(ref _DeleteSourceFileAfterDone, value);
         }
 
 
@@ -55,15 +62,21 @@ namespace YetAnotherLosslessCutter
         public bool SaveToSourceFolder
         {
             get => _SaveToSourceFolder;
-            set => Set(() => SaveToSourceFolder, ref _SaveToSourceFolder, value);
+            set => Set(ref _SaveToSourceFolder, value);
         }
-
+        private bool _RemoveFinishedSegments;
+        [JsonPropertyName("RemoveFinishedSegments")]
+        public bool RemoveFinishedSegments
+        {
+            get => _RemoveFinishedSegments;
+            set => Set(ref _RemoveFinishedSegments, value);
+        }
         private string _OutputDirectory = string.Empty;
         [JsonPropertyName("OutputDirectory")]
         public string OutputDirectory
         {
             get => _OutputDirectory;
-            set => Set(() => OutputDirectory, ref _OutputDirectory, value);
+            set => Set(ref _OutputDirectory, value);
         }
     }
 }
