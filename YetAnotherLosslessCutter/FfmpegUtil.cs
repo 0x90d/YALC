@@ -65,7 +65,7 @@ namespace YetAnotherLosslessCutter
     sealed class FfmpegUtil
     {
         public event Action<ProgressEventArgs> Progress;
-        
+
         public async Task Cut(VideoSegment segment)
         {
             var commandLine = BuildCommandLine(segment);
@@ -85,7 +85,8 @@ namespace YetAnotherLosslessCutter
                 }
             };
 
-            ffmpegProcess.ErrorDataReceived += (sender, e) => {
+            ffmpegProcess.ErrorDataReceived += (sender, e) =>
+            {
                 if (e.Data == null) return;
                 var c = FfmpegStatics.ProgressRegex.Matches(e.Data);
                 if (c.Count == 0 || c[0].Groups.Count < 2) return;
@@ -94,21 +95,9 @@ namespace YetAnotherLosslessCutter
                 Progress?.Invoke(new ProgressEventArgs(progress / segment.CutDuration));
             };
 
-            Task<int> task = null;
-            try
-            {
-                task = ffmpegProcess.WaitForExitAsync(null);
-                await task;
-            }
-            catch (Exception)
-            {
-                if (task?.IsCanceled == true)
-                {
-                    throw new TaskCanceledException(task);
-                }
-                throw;
-            }
-            if (ffmpegProcess != null && ffmpegProcess.ExitCode != 0)
+            await ffmpegProcess.WaitForExitAsync(null);
+
+            if (ffmpegProcess.ExitCode != 0)
                 throw new Exception("Failed to cut. Uncheck 'Include all streams' and try again. Otherwise run ffmpeg yourself and see what reports to you");
         }
 
@@ -134,7 +123,6 @@ namespace YetAnotherLosslessCutter
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden
                 }
             };
@@ -174,25 +162,29 @@ namespace YetAnotherLosslessCutter
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden
                 }
             };
             try
             {
-                var task = ffmpegProcess.WaitForExitAsync(null);
-                await task;
+                await ffmpegProcess.WaitForExitAsync(null);
                 await using var ms = new MemoryStream();
                 ffmpegProcess.StandardOutput.BaseStream.CopyTo(ms);
                 return (BitmapSource)new ImageSourceConverter().ConvertFrom(ms.ToArray());
             }
             catch (Exception)
             {
+                try
+                {
+                    if (ffmpegProcess.HasExited == false)
+                        ffmpegProcess.Kill();
+                }
+                catch { }
                 return null;
             }
         }
 
-      
+
 
 
         static string BuildCommandLine(VideoSegment segment)

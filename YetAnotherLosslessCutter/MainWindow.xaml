@@ -146,6 +146,91 @@
                         StrokeDashArray="8 8"
                         StrokeThickness="1" />
                 </Grid>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="QueueItemTemplate">
+            <Grid>
+                <Grid
+                    Margin="0,5,0,0"
+                    Background="Transparent"
+                    IsEnabled="False">
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Border
+                        Margin="5"
+                        Background="Black"
+                        BorderBrush="#06CA06"
+                        BorderThickness="2">
+                        <Image
+                            Width="112"
+                            Height="63"
+                            Source="{Binding Thumbnail}" />
+                    </Border>
+
+                    <Grid
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock HorizontalAlignment="Center">
+                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Duration: </Run>
+                                <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                            </TextBlock>
+
+                            <TextBlock
+                                Margin="0,5,0,0"
+                                HorizontalAlignment="Center"
+                                Foreground="LightGray">
+                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Start: </Run>
+                                <Run Text="{Binding CutFrom, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}"> ~ End: </Run>
+                                <Run Text="{Binding CutTo, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                            </TextBlock>
+                        </StackPanel>
+                        <Viewbox
+                            Grid.Row="1"
+                            Width="220"
+                            Height="3"
+                            Margin="0,10,0,0"
+                            Stretch="Fill">
+                            <Grid>
+                                <Border
+                                    Width="{Binding DurationWidth, Mode=OneWay}"
+                                    BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                                    BorderThickness="2" />
+                                <Path
+                                    Width="{Binding MarkerRange, Mode=OneWay}"
+                                    Stroke="#16EA16"
+                                    StrokeThickness="4">
+                                    <Path.Data>
+                                        <LineGeometry StartPoint="{Binding LeftMarker}" EndPoint="{Binding RightMarker}" />
+                                    </Path.Data>
+                                </Path>
+                            </Grid>
+                        </Viewbox>
+                    </Grid>
+                    <Rectangle
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Height="1"
+                        Margin="0,10,0,5"
+                        SnapsToDevicePixels="True"
+                        Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                        StrokeDashArray="8 8"
+                        StrokeThickness="1" />
+                </Grid>
                 <Grid
                     Controls:VisibilityHelper.IsCollapsed="{Binding IsEnabled}"
                     Background="Black"
@@ -164,7 +249,7 @@
                 <Grid
                     Controls:VisibilityHelper.IsVisible="{Binding Status, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProgressStatus.Finished}}"
                     Background="Black"
-                    Opacity="0.8">
+                    Opacity="0.7">
                     <iconPacks:PackIconMaterial
                         Width="32"
                         Height="32"
@@ -314,7 +399,7 @@
                     <ListBox
                         Grid.Row="0"
                         MinWidth="200"
-                        ItemTemplate="{DynamicResource VideoSegmentItemTemplate}"
+                        ItemTemplate="{DynamicResource QueueItemTemplate}"
                         ItemsSource="{Binding ProcessingQueueList}" />
                     <Grid Grid.Row="1" Background="#303030">
                         <ToolBar Margin="5,0,5,0" ToolBarTray.IsLocked="True">
@@ -410,22 +495,6 @@
                                         Text="Settings" />
                                 </StackPanel>
                             </ToggleButton>
-                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
-                            <Button Command="{Binding AddNewSegment}" ToolTip="Add new segment (Ctrl+N)">
-                                <StackPanel Orientation="Horizontal">
-                                    <iconPacks:PackIconMaterial
-                                        Margin="5,0,0,0"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        Kind="PlusCircle" />
-                                    <TextBlock
-                                        Margin="5,0,5,0"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        FontSize="16"
-                                        Text="Add new segment" />
-                                </StackPanel>
-                            </Button>
                         </ToolBar>
                     </Grid>
                 </Grid>
@@ -679,6 +748,25 @@
                         HorizontalAlignment="Center"
                         Orientation="Horizontal">
                         <Button
+                            Command="{Binding AddNewSegment}"
+                            Focusable="False"
+                            ToolTip="Add new segment (Ctrl+N)">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial
+                                    Margin="5,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Kind="PlusCircle" />
+                                <TextBlock
+                                    Margin="5,0,5,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="16"
+                                    FontWeight="Normal"
+                                    Text="Add new segment" />
+                            </StackPanel>
+                        </Button>
+                        <Button
                             MinWidth="200"
                             Margin="5,0,5,0"
                             Command="{Binding CutVideo}"
@@ -708,27 +796,6 @@
                                     Text="Add To Queue" />
                             </StackPanel>
                         </Button>
-                        <!--<Button
-                            MinWidth="200"
-                            Margin="5,0,5,0"
-                            Command="{Binding DeleteSource}"
-                            Focusable="False"
-                            ToolTip="Delete Source File (D)">
-                            <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconMaterial
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Foreground="Red"
-                                    Kind="Delete" />
-                                <TextBlock
-                                    Margin="5,0,0,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontSize="16"
-                                    FontWeight="Normal"
-                                    Text="Delete Source" />
-                            </StackPanel>
-                        </Button>-->
                     </StackPanel>
                 </Grid>
 
