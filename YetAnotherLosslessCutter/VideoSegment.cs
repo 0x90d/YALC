@@ -17,7 +17,11 @@ namespace YetAnotherLosslessCutter
         public DelegateCommand DeleteThisSegment => new DelegateCommand(() =>
         {
             //You really shouldn't do this
-            ((MainWindowVM)host.DataContext).DeleteSegment(this);
+            if (Status == ProgressStatus.Idle)
+                ((MainWindowVM)host.DataContext).DeleteSegment(this);
+            else
+                ((MainWindowVM)host.DataContext).DeleteSegmentFromQueue(this);
+
         });
         public async Task<CuttingTaskResult> Cut()
         {
@@ -32,7 +36,7 @@ namespace YetAnotherLosslessCutter
 
             Status = ProgressStatus.Running;
             CutTo = CutTo < CutFrom ? MaxDuration : CutTo;
-         
+
             try
             {
                 await ffmpeg.Cut(this);
@@ -46,16 +50,18 @@ namespace YetAnotherLosslessCutter
                 Status = ProgressStatus.Failed;
                 return new CuttingTaskResult(false, e);
             }
-           
-           
+
+
         }
+
+        public bool MarkedForDeletion;
 
         string _SourceFile;
         [JsonPropertyName("SourceFile")]
         public string SourceFile
         {
             get => _SourceFile;
-            set => Set( ref _SourceFile, value);
+            set => Set(ref _SourceFile, value);
         }
 
         [JsonIgnore]
@@ -72,7 +78,7 @@ namespace YetAnotherLosslessCutter
 
         }
         [JsonPropertyName("Thumbnail")]
-        public ImageSource Thumbnail { get;  set; }
+        public ImageSource Thumbnail { get; set; }
 
         TimeSpan _CurrentPosition = TimeSpan.Zero;
         [JsonIgnore]
@@ -82,7 +88,7 @@ namespace YetAnotherLosslessCutter
             set
             {
                 if (value > MaxDuration) value = MaxDuration;
-                if (!Set( ref _CurrentPosition, value)) return;
+                if (!Set(ref _CurrentPosition, value)) return;
                 host.TimelineSlider.Value = _CurrentPosition.TotalMilliseconds;
                 host.MediaElement1.Position = _CurrentPosition;
                 OnPropertyChanged(nameof(CurrentPositionDouble));
@@ -98,7 +104,7 @@ namespace YetAnotherLosslessCutter
             {
                 if (value > MaxDuration) value = MaxDuration;
                 if (value < TimeSpan.Zero) value = TimeSpan.Zero;
-                if (!Set( ref _CutFrom, value)) return;
+                if (!Set(ref _CutFrom, value)) return;
                 CurrentPosition = _CutFrom;
                 OnPropertyChanged(nameof(LeftMarker));
                 OnPropertyChanged(nameof(CutDuration));
@@ -119,10 +125,10 @@ namespace YetAnotherLosslessCutter
             get => _CutTo;
             set
             {
-                if ( value < CutFrom) return;
+                if (value < CutFrom) return;
                 if (value > MaxDuration) value = MaxDuration;
                 if (value < TimeSpan.Zero) value = TimeSpan.Zero;
-                if (!Set( ref _CutTo, value)) return;
+                if (!Set(ref _CutTo, value)) return;
                 CurrentPosition = _CutTo;
                 OnPropertyChanged(nameof(RightMarker));
                 OnPropertyChanged(nameof(CutDuration));
@@ -137,7 +143,7 @@ namespace YetAnotherLosslessCutter
             get => _MaxDuration;
             set
             {
-                if (!Set( ref _MaxDuration, value)) return;
+                if (!Set(ref _MaxDuration, value)) return;
                 OnPropertyChanged(nameof(DurationWidth));
                 _CutTo = _MaxDuration;
                 OnPropertyChanged(nameof(CutTo));

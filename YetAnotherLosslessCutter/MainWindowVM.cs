@@ -22,7 +22,11 @@ namespace YetAnotherLosslessCutter
 
         Track TimeLineTrack => host.TimelineSlider.Template.FindName("PART_Track", host.TimelineSlider) as Track;
 
-        //  ProgressDialogController progressDialogController;
+        private readonly MetroDialogSettings dialogSettings = new MetroDialogSettings
+        {
+            AnimateHide = false,
+            AnimateShow = false
+        };
         public string Title => $"YALC - {YALCConstants.ASSEMBLY_INFORMATIONAL_VERSION}";
         MediaInfo SourceInfo;
 
@@ -166,17 +170,26 @@ namespace YetAnotherLosslessCutter
         {
             if (segment == null) return;
             var result = await host.ShowMessageAsync("Confirmation", "Remove segment from list?",
-                MessageDialogStyle.AffirmativeAndNegative);
+                MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
             if (result != MessageDialogResult.Affirmative) return;
             if (segment == SelectedSegment)
                 SelectedSegment = null;
             ProjectSegmentList.Remove(segment);
         }
+        public async void DeleteSegmentFromQueue(VideoSegment segment)
+        {
+            if (segment == null) return;
+            var result = await host.ShowMessageAsync("Confirmation", "Remove segment from queue?",
+                MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
+            if (result != MessageDialogResult.Affirmative) return;
+            segment.MarkedForDeletion = true;
+            ProcessingQueueList.Remove(segment);
+        }
 
         public DelegateCommand RemoveAllSegments => new DelegateCommand(async () =>
         {
             var result = await host.ShowMessageAsync("Confirmation", "Clear segment list?",
-                MessageDialogStyle.AffirmativeAndNegative);
+                MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
             if (result != MessageDialogResult.Affirmative) return;
             SelectedSegment = null;
             ProjectSegmentList.Clear();
@@ -238,13 +251,13 @@ namespace YetAnotherLosslessCutter
             if (hasUpdate != true)
             {
                 await host.ShowMessageAsync("Information",
-                    hasUpdate == null ? "Failed to check for updates" : "You're using the latest version");
+                    hasUpdate == null ? "Failed to check for updates" : "You're using the latest version", settings: dialogSettings);
                 return;
             }
 
             var result = await host.ShowMessageAsync("Information",
                 "New version available. Do you want to visit the download site?",
-                MessageDialogStyle.AffirmativeAndNegative);
+                MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
             if (result == MessageDialogResult.Negative) return;
             Process.Start(
                 new ProcessStartInfo("https://github.com/0x90d/YALC/releases/latest") { UseShellExecute = true });
@@ -365,12 +378,13 @@ namespace YetAnotherLosslessCutter
 
             while (ProcessingQueue.TryDequeue(out var videoSegment))
             {
+                if (videoSegment.MarkedForDeletion) continue;
                 host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
                 var result = await videoSegment.Cut();
                 if (result.Success == false)
                 {
                     host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Error;
-                    await host.ShowMessageAsync("Error", result.Error.ToString());
+                    await host.ShowMessageAsync("Error", result.Error.ToString(), settings: dialogSettings);
                 }
                 else
                 {
@@ -427,7 +441,7 @@ namespace YetAnotherLosslessCutter
                         }
                         catch (Exception ex)
                         {
-                            await host.ShowMessageAsync("Failed to delete file", ex.ToString());
+                            await host.ShowMessageAsync("Failed to delete file", ex.ToString(), settings: dialogSettings);
                         }
                     }
                     fileList.Add(videoSegment);

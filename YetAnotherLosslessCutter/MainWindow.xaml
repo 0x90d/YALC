@@ -31,218 +31,224 @@
         <sys:Int32 x:Key="Integer10">10</sys:Int32>
         <sys:Int32 x:Key="Integer60">60</sys:Int32>
         <DataTemplate x:Key="VideoSegmentItemTemplate">
-            <Grid>
+            <Grid Margin="0,5,0,0" Background="Transparent">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseEnter">
+                        <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
+                            <i:ChangePropertyAction.Value>
+                                <Visibility>Visible</Visibility>
+                            </i:ChangePropertyAction.Value>
+                        </i:ChangePropertyAction>
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="MouseLeave">
+                        <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
+                            <i:ChangePropertyAction.Value>
+                                <Visibility>Collapsed</Visibility>
+                            </i:ChangePropertyAction.Value>
+                        </i:ChangePropertyAction>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Border
+                    Margin="5"
+                    Background="Black"
+                    BorderBrush="#06CA06"
+                    BorderThickness="2">
+                    <Image
+                        Width="112"
+                        Height="63"
+                        Source="{Binding Thumbnail}" />
+                </Border>
+
                 <Grid
-                    Margin="0,5,0,0"
-                    Background="Transparent"
-                    IsEnabled="{Binding IsEnabled}">
-                    <i:Interaction.Triggers>
-                        <i:EventTrigger EventName="MouseEnter">
-                            <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
-                                <i:ChangePropertyAction.Value>
-                                    <Visibility>Visible</Visibility>
-                                </i:ChangePropertyAction.Value>
-                            </i:ChangePropertyAction>
-                        </i:EventTrigger>
-                        <i:EventTrigger EventName="MouseLeave">
-                            <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
-                                <i:ChangePropertyAction.Value>
-                                    <Visibility>Collapsed</Visibility>
-                                </i:ChangePropertyAction.Value>
-                            </i:ChangePropertyAction>
-                        </i:EventTrigger>
-                    </i:Interaction.Triggers>
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                        <RowDefinition />
                     </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Border
-                        Margin="5"
-                        Background="Black"
-                        BorderBrush="#06CA06"
-                        BorderThickness="2">
-                        <Image
-                            Width="112"
-                            Height="63"
-                            Source="{Binding Thumbnail}" />
-                    </Border>
+                    <StackPanel>
+                        <TextBlock HorizontalAlignment="Center">
+                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Duration: </Run>
+                            <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                        </TextBlock>
 
-                    <Grid
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        Margin="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition />
-                            <RowDefinition />
-                            <RowDefinition />
-                        </Grid.RowDefinitions>
-                        <StackPanel>
-                            <TextBlock HorizontalAlignment="Center">
-                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Duration: </Run>
-                                <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                            </TextBlock>
-
-                            <TextBlock
-                                Margin="0,5,0,0"
-                                HorizontalAlignment="Center"
-                                Foreground="LightGray">
-                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Start: </Run>
-                                <Run Text="{Binding CutFrom, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}"> ~ End: </Run>
-                                <Run Text="{Binding CutTo, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                            </TextBlock>
-                        </StackPanel>
-                        <Viewbox
-                            Grid.Row="1"
-                            Width="220"
-                            Height="3"
-                            Margin="0,10,0,0"
-                            Stretch="Fill">
-                            <Grid>
-                                <Border
-                                    Width="{Binding DurationWidth, Mode=OneWay}"
-                                    BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
-                                    BorderThickness="2" />
-                                <Path
-                                    Width="{Binding MarkerRange, Mode=OneWay}"
-                                    Stroke="#16EA16"
-                                    StrokeThickness="4">
-                                    <Path.Data>
-                                        <LineGeometry StartPoint="{Binding LeftMarker}" EndPoint="{Binding RightMarker}" />
-                                    </Path.Data>
-                                </Path>
-                            </Grid>
-                        </Viewbox>
-                    </Grid>
-                    <Button
-                        x:Name="DeleteSegmenButton"
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        Margin="0,0,10,0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        BorderThickness="0"
-                        Command="{Binding DeleteThisSegment}"
-                        Style="{StaticResource MahApps.Styles.Button.MetroSquare}"
-                        ToolTip="Remove selected segment"
-                        Visibility="Collapsed">
-                        <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconMaterial
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Foreground="Red"
-                                Kind="Delete" />
-                        </StackPanel>
-                    </Button>
-                    <Rectangle
+                        <TextBlock
+                            Margin="0,5,0,0"
+                            HorizontalAlignment="Center"
+                            Foreground="LightGray">
+                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Start: </Run>
+                            <Run Text="{Binding CutFrom, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}"> ~ End: </Run>
+                            <Run Text="{Binding CutTo, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                        </TextBlock>
+                    </StackPanel>
+                    <Viewbox
                         Grid.Row="1"
-                        Grid.Column="0"
-                        Grid.ColumnSpan="2"
-                        Height="1"
-                        Margin="0,10,0,5"
-                        SnapsToDevicePixels="True"
-                        Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
-                        StrokeDashArray="8 8"
-                        StrokeThickness="1" />
+                        Width="220"
+                        Height="3"
+                        Margin="0,10,0,0"
+                        Stretch="Fill">
+                        <Grid>
+                            <Border
+                                Width="{Binding DurationWidth, Mode=OneWay}"
+                                BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                                BorderThickness="2" />
+                            <Path
+                                Width="{Binding MarkerRange, Mode=OneWay}"
+                                Stroke="#16EA16"
+                                StrokeThickness="4">
+                                <Path.Data>
+                                    <LineGeometry StartPoint="{Binding LeftMarker}" EndPoint="{Binding RightMarker}" />
+                                </Path.Data>
+                            </Path>
+                        </Grid>
+                    </Viewbox>
                 </Grid>
+                <Button
+                    x:Name="DeleteSegmenButton"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,10,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    BorderThickness="0"
+                    Command="{Binding DeleteThisSegment}"
+                    Style="{StaticResource MahApps.Styles.Button.MetroSquare}"
+                    ToolTip="Remove selected segment"
+                    Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="Red"
+                            Kind="Delete" />
+                    </StackPanel>
+                </Button>
+                <Rectangle
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Height="1"
+                    Margin="0,10,0,5"
+                    SnapsToDevicePixels="True"
+                    Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                    StrokeDashArray="8 8"
+                    StrokeThickness="1" />
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="QueueItemTemplate">
-            <Grid>
+            <Grid Margin="0,5,0,0" Background="Transparent">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseEnter">
+                        <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
+                            <i:ChangePropertyAction.Value>
+                                <Visibility>Visible</Visibility>
+                            </i:ChangePropertyAction.Value>
+                        </i:ChangePropertyAction>
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="MouseLeave">
+                        <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
+                            <i:ChangePropertyAction.Value>
+                                <Visibility>Collapsed</Visibility>
+                            </i:ChangePropertyAction.Value>
+                        </i:ChangePropertyAction>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Border
+                    Margin="5"
+                    Background="Black"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    BorderThickness="2">
+                    <Image
+                        Width="112"
+                        Height="63"
+                        Opacity="0.5"
+                        Source="{Binding Thumbnail}" />
+                </Border>
+
                 <Grid
-                    Margin="0,5,0,0"
-                    Background="Transparent"
-                    IsEnabled="False">
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                        <RowDefinition />
                     </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Border
-                        Margin="5"
-                        Background="Black"
-                        BorderBrush="#06CA06"
-                        BorderThickness="2">
-                        <Image
-                            Width="112"
-                            Height="63"
-                            Source="{Binding Thumbnail}" />
-                    </Border>
+                    <StackPanel>
+                        <TextBlock HorizontalAlignment="Center" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">
+                            <Run xml:space="preserve">Duration: </Run>
+                            <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                        </TextBlock>
 
-                    <Grid
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        Margin="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition />
-                            <RowDefinition />
-                            <RowDefinition />
-                        </Grid.RowDefinitions>
-                        <StackPanel>
-                            <TextBlock HorizontalAlignment="Center">
-                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Duration: </Run>
-                                <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                            </TextBlock>
-
-                            <TextBlock
-                                Margin="0,5,0,0"
-                                HorizontalAlignment="Center"
-                                Foreground="LightGray">
-                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Start: </Run>
-                                <Run Text="{Binding CutFrom, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                                <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}"> ~ End: </Run>
-                                <Run Text="{Binding CutTo, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                            </TextBlock>
-                        </StackPanel>
-                        <Viewbox
-                            Grid.Row="1"
-                            Width="220"
-                            Height="3"
-                            Margin="0,10,0,0"
-                            Stretch="Fill">
-                            <Grid>
-                                <Border
-                                    Width="{Binding DurationWidth, Mode=OneWay}"
-                                    BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
-                                    BorderThickness="2" />
-                                <Path
-                                    Width="{Binding MarkerRange, Mode=OneWay}"
-                                    Stroke="#16EA16"
-                                    StrokeThickness="4">
-                                    <Path.Data>
-                                        <LineGeometry StartPoint="{Binding LeftMarker}" EndPoint="{Binding RightMarker}" />
-                                    </Path.Data>
-                                </Path>
-                            </Grid>
-                        </Viewbox>
-                    </Grid>
-                    <Rectangle
+                        <TextBlock
+                            Margin="0,5,0,0"
+                            HorizontalAlignment="Center"
+                            Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">
+                            <Run xml:space="preserve">Start: </Run>
+                            <Run Text="{Binding CutFrom, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                            <Run xml:space="preserve"> ~ End: </Run>
+                            <Run Text="{Binding CutTo, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
+                        </TextBlock>
+                    </StackPanel>
+                    <Viewbox
                         Grid.Row="1"
-                        Grid.Column="0"
-                        Grid.ColumnSpan="2"
-                        Height="1"
-                        Margin="0,10,0,5"
-                        SnapsToDevicePixels="True"
-                        Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
-                        StrokeDashArray="8 8"
-                        StrokeThickness="1" />
+                        Width="220"
+                        Height="3"
+                        Margin="0,10,0,0"
+                        Stretch="Fill">
+                        <Grid>
+                            <Border
+                                Width="{Binding DurationWidth, Mode=OneWay}"
+                                BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                                BorderThickness="2" />
+                            <Path
+                                Width="{Binding MarkerRange, Mode=OneWay}"
+                                Stroke="{DynamicResource MahApps.Brushes.Accent}"
+                                StrokeThickness="4">
+                                <Path.Data>
+                                    <LineGeometry StartPoint="{Binding LeftMarker}" EndPoint="{Binding RightMarker}" />
+                                </Path.Data>
+                            </Path>
+                        </Grid>
+                    </Viewbox>
                 </Grid>
                 <Grid
-                    Controls:VisibilityHelper.IsCollapsed="{Binding IsEnabled}"
-                    Background="Black"
-                    Opacity="0.7">
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Controls:VisibilityHelper.IsCollapsed="{Binding IsEnabled}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock HorizontalAlignment="Center" Text="{Binding ProgressText}" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Controls:VisibilityHelper.IsVisible="{Binding Status, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProgressStatus.Waiting}}"
+                            Text="Waiting..." />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Controls:VisibilityHelper.IsVisible="{Binding Status, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProgressStatus.Running}}"
+                            Text="{Binding ProgressText}" />
                         <Controls:MetroProgressBar
                             Width="200"
-                            Margin="10"
+                            Margin="5"
                             Foreground="#16EA16"
                             IsIndeterminate="{Binding Status, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProgressStatus.Waiting}}"
                             Maximum="1"
@@ -250,9 +256,10 @@
                     </StackPanel>
                 </Grid>
                 <Grid
-                    Controls:VisibilityHelper.IsVisible="{Binding Status, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProgressStatus.Finished}}"
-                    Background="Black"
-                    Opacity="0.7">
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Controls:VisibilityHelper.IsVisible="{Binding Status, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static local:ProgressStatus.Finished}}">
                     <iconPacks:PackIconMaterial
                         Width="32"
                         Height="32"
@@ -262,6 +269,35 @@
                         Foreground="#16EA16"
                         Kind="Check" />
                 </Grid>
+                <Button
+                    x:Name="DeleteSegmenButton"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,10,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    BorderThickness="0"
+                    Command="{Binding DeleteThisSegment}"
+                    Style="{StaticResource MahApps.Styles.Button.MetroSquare}"
+                    ToolTip="Remove selected segment"
+                    Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="Red"
+                            Kind="Delete" />
+                    </StackPanel>
+                </Button>
+                <Rectangle
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Height="1"
+                    SnapsToDevicePixels="True"
+                    Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                    StrokeDashArray="8 8"
+                    StrokeThickness="1" />
             </Grid>
         </DataTemplate>
     </Window.Resources>
