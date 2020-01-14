@@ -8,6 +8,7 @@
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:YetAnotherLosslessCutter"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
     Title="{Binding Title}"
     Width="1300"
@@ -26,7 +27,9 @@
     <Window.Resources>
         <xctk:InverseBoolConverter x:Key="InverseBoolConverter" />
         <local:EnumToBoolConverter x:Key="EnumToBoolConverter" />
-
+        <sys:Int32 x:Key="Integer1">1</sys:Int32>
+        <sys:Int32 x:Key="Integer10">10</sys:Int32>
+        <sys:Int32 x:Key="Integer60">60</sys:Int32>
         <DataTemplate x:Key="VideoSegmentItemTemplate">
             <Grid>
                 <Grid
@@ -535,7 +538,17 @@
                         MinWidth="25"
                         Background="Transparent"
                         BorderThickness="0"
-                        Command="{Binding Jump10SecondBackward}"
+                        Command="{Binding JumpXSecondBackward}"
+                        CommandParameter="{StaticResource Integer60}"
+                        Content="&lt;&lt;&lt;&lt;"
+                        Focusable="False"
+                        ToolTip="Jump 60 second backward (Shift+Ctrl+Left Arrow)" />
+                    <Button
+                        MinWidth="25"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding JumpXSecondBackward}"
+                        CommandParameter="{StaticResource Integer10}"
                         Content="&lt;&lt;&lt;"
                         Focusable="False"
                         ToolTip="Jump 10 second backward (Shift+Left Arrow)" />
@@ -543,10 +556,11 @@
                         MinWidth="25"
                         Background="Transparent"
                         BorderThickness="0"
-                        Command="{Binding Jump1SecondBackward}"
+                        Command="{Binding JumpXSecondBackward}"
+                        CommandParameter="{StaticResource Integer1}"
                         Content="&lt;&lt;"
                         Focusable="False"
-                        ToolTip="Jump 1 second backward (Left Arrow)" />
+                        ToolTip="Jump 1 second backward (Ctrl+Left Arrow)" />
                     <Button
                         MinWidth="25"
                         Background="Transparent"
@@ -554,7 +568,7 @@
                         Command="{Binding Jump1FrameBackward}"
                         Content="&lt;"
                         Focusable="False"
-                        ToolTip="Jump 1 frame backward (Ctrl+Left Arrow)" />
+                        ToolTip="Jump 1 frame backward (Left Arrow)" />
                     <Button
                         MinWidth="25"
                         Background="Transparent"
@@ -562,23 +576,34 @@
                         Command="{Binding Jump1FrameForward}"
                         Content="&gt;"
                         Focusable="False"
-                        ToolTip="Jump 1 frame forward (Ctrl+Right Arrow)" />
+                        ToolTip="Jump 1 frame forward (Right Arrow)" />
                     <Button
                         MinWidth="25"
                         Background="Transparent"
                         BorderThickness="0"
-                        Command="{Binding Jump1SecondForward}"
+                        Command="{Binding JumpXSecondForward}"
+                        CommandParameter="{StaticResource Integer1}"
                         Content="&gt;&gt;"
                         Focusable="False"
-                        ToolTip="Jump 1 second forward (Right Arrow)" />
+                        ToolTip="Jump 1 second forward (Ctrl+Right Arrow)" />
                     <Button
                         MinWidth="25"
                         Background="Transparent"
                         BorderThickness="0"
-                        Command="{Binding Jump10SecondForward}"
+                        Command="{Binding JumpXSecondForward}"
+                        CommandParameter="{StaticResource Integer10}"
                         Content="&gt;&gt;&gt;"
                         Focusable="False"
                         ToolTip="Jump 10 second forward (Shift+Right Arrow)" />
+                    <Button
+                        MinWidth="25"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding JumpXSecondForward}"
+                        CommandParameter="{StaticResource Integer60}"
+                        Content="&gt;&gt;&gt;&gt;"
+                        Focusable="False"
+                        ToolTip="Jump 60 second forward (Shift+Ctrl+Right Arrow)" />
                 </StackPanel>
                 <StackPanel
                     Grid.Column="2"

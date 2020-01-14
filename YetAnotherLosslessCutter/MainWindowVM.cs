@@ -29,12 +29,15 @@ namespace YetAnotherLosslessCutter
         public MainWindowVM(MainWindow mainWindow)
         {
             host = mainWindow;
-            host.InputBindings.Add(new KeyBinding(Jump1SecondForward, new KeyGesture(Key.Right, ModifierKeys.None)));
-            host.InputBindings.Add(new KeyBinding(Jump1FrameForward, new KeyGesture(Key.Right, ModifierKeys.Control)));
-            host.InputBindings.Add(new KeyBinding(Jump10SecondForward, new KeyGesture(Key.Right, ModifierKeys.Shift)));
-            host.InputBindings.Add(new KeyBinding(Jump1SecondBackward, new KeyGesture(Key.Left, ModifierKeys.None)));
-            host.InputBindings.Add(new KeyBinding(Jump1FrameBackward, new KeyGesture(Key.Left, ModifierKeys.Control)));
-            host.InputBindings.Add(new KeyBinding(Jump10SecondBackward, new KeyGesture(Key.Left, ModifierKeys.Shift)));
+            host.InputBindings.Add(new KeyBinding(Jump1FrameForward, new KeyGesture(Key.Right, ModifierKeys.None)));
+            host.InputBindings.Add(new KeyBinding(JumpXSecondForward, new KeyGesture(Key.Right, ModifierKeys.Control)) { CommandParameter = 1 });
+            host.InputBindings.Add(new KeyBinding(JumpXSecondForward, new KeyGesture(Key.Right, ModifierKeys.Shift)) { CommandParameter = 10 });
+            host.InputBindings.Add(new KeyBinding(JumpXSecondForward, new KeyGesture(Key.Right, ModifierKeys.Shift | ModifierKeys.Control)) { CommandParameter = 60 });
+
+            host.InputBindings.Add(new KeyBinding(Jump1FrameBackward, new KeyGesture(Key.Left, ModifierKeys.None)));
+            host.InputBindings.Add(new KeyBinding(JumpXSecondBackward, new KeyGesture(Key.Left, ModifierKeys.Control)) { CommandParameter = 1 });
+            host.InputBindings.Add(new KeyBinding(JumpXSecondBackward, new KeyGesture(Key.Left, ModifierKeys.Shift)) { CommandParameter = 1 });
+            host.InputBindings.Add(new KeyBinding(JumpXSecondBackward, new KeyGesture(Key.Left, ModifierKeys.Shift | ModifierKeys.Control)) { CommandParameter = 60 });
         }
 
 
@@ -179,40 +182,39 @@ namespace YetAnotherLosslessCutter
             ProjectSegmentList.Clear();
         });
 
+        public DelegateCommand<int> JumpXSecondForward => new DelegateCommand<int>((i) =>
+         {
+             if (string.IsNullOrEmpty(SourceFile)) return;
+             if (SelectedSegment.CurrentPosition + TimeSpan.FromSeconds(i) >
+                 SourceInfo.Duration)
+                 SelectedSegment.CurrentPosition = SourceInfo.Duration;
+             else
+                 SelectedSegment.CurrentPosition += TimeSpan.FromSeconds(i);
+         });
         public DelegateCommand Jump1FrameForward => new DelegateCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            SelectedSegment.CurrentPosition += TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
+            if (SelectedSegment.CurrentPosition + TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate) > SourceInfo.Duration)
+                SelectedSegment.CurrentPosition = SourceInfo.Duration;
+            else
+                SelectedSegment.CurrentPosition += TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
         });
-
-        public DelegateCommand Jump1SecondForward => new DelegateCommand(() =>
-        {
-            if (string.IsNullOrEmpty(SourceFile)) return;
-            SelectedSegment.CurrentPosition += TimeSpan.FromSeconds(1);
-        });
-
-        public DelegateCommand Jump10SecondForward => new DelegateCommand(() =>
-        {
-            if (string.IsNullOrEmpty(SourceFile)) return;
-            SelectedSegment.CurrentPosition += TimeSpan.FromSeconds(10);
-        });
-
         public DelegateCommand Jump1FrameBackward => new DelegateCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            SelectedSegment.CurrentPosition -= TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
+            if (SelectedSegment.CurrentPosition - TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate) > TimeSpan.Zero)
+                SelectedSegment.CurrentPosition = TimeSpan.Zero;
+            else
+                SelectedSegment.CurrentPosition -= TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
         });
 
-        public DelegateCommand Jump1SecondBackward => new DelegateCommand(() =>
+        public DelegateCommand<int> JumpXSecondBackward => new DelegateCommand<int>((i) =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            SelectedSegment.CurrentPosition -= TimeSpan.FromSeconds(1);
-        });
-
-        public DelegateCommand Jump10SecondBackward => new DelegateCommand(() =>
-        {
-            if (string.IsNullOrEmpty(SourceFile)) return;
-            SelectedSegment.CurrentPosition -= TimeSpan.FromSeconds(10);
+            if (SelectedSegment.CurrentPosition - TimeSpan.FromSeconds(i) < TimeSpan.Zero)
+                SelectedSegment.CurrentPosition = TimeSpan.Zero;
+            else
+                SelectedSegment.CurrentPosition -= TimeSpan.FromSeconds(i);
         });
 
         public DelegateCommand PlayVideo => new DelegateCommand(() => host.MediaElement1.Play());
