@@ -183,6 +183,35 @@ namespace YetAnotherLosslessCutter
                 return null;
             }
         }
+        public static async Task CreateGIF(string source, string target, TimeSpan start, TimeSpan end, int width)
+        {
+            using var ffmpegProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    Arguments = $" -hide_banner -loglevel panic -y -ss {start} -i \"{source}\" -t {end - start} -vf scale={width}:-1 \"{target}\"",
+                    FileName = FfmpegStatics.FfmpegPath,
+                    CreateNoWindow = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                }
+            };
+            try
+            {
+                await ffmpegProcess.WaitForExitAsync(null);
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    if (ffmpegProcess.HasExited == false)
+                        ffmpegProcess.Kill();
+                }
+                catch { }
+            }
+        }
 
 
 

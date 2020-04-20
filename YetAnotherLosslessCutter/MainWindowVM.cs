@@ -232,7 +232,14 @@ namespace YetAnotherLosslessCutter
 
         public DelegateCommand PlayVideo => new DelegateCommand(() => host.MediaElement1.Play());
         public DelegateCommand PauseVideo => new DelegateCommand(() => host.MediaElement1.Pause());
+        public DelegateCommand CreateGIF => new DelegateCommand(async () =>
+        {
+            if (string.IsNullOrEmpty(SourceFile)) return;
+            var sfd = new System.Windows.Forms.SaveFileDialog { DefaultExt = "gif", AddExtension = true, Filter = "GIF|*.gif" };
+            if (sfd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
 
+            await FfmpegUtil.CreateGIF(SourceFile, sfd.FileName, SelectedSegment.CutFrom, SelectedSegment.CutTo, -1);
+        });
         public DelegateCommand ReloadVideo => new DelegateCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
