@@ -119,7 +119,7 @@ namespace YetAnotherLosslessCutter
             }
 
             if (string.IsNullOrEmpty(ffmpegPath))
-                MessageBox.Show("Ffprobe is missing", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Ffprobe.exe is missing. Please download and put it into the same folder as this application.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

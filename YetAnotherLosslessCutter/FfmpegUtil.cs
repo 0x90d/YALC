@@ -50,7 +50,7 @@ namespace YetAnotherLosslessCutter
             }
 
             if (string.IsNullOrEmpty(FfmpegPath))
-                MessageBox.Show("FFmpeg is missing", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("FFmpeg.exe is missing. Please download and put it into the same folder as this application.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
     public sealed class ProgressEventArgs : EventArgs
