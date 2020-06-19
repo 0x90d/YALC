@@ -215,7 +215,7 @@ namespace YetAnotherLosslessCutter
         public DelegateCommand Jump1FrameBackward => new DelegateCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            if (SelectedSegment.CurrentPosition - TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate) > TimeSpan.Zero)
+            if (SelectedSegment.CurrentPosition - TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate) < TimeSpan.Zero)
                 SelectedSegment.CurrentPosition = TimeSpan.Zero;
             else
                 SelectedSegment.CurrentPosition -= TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
