@@ -5,19 +5,21 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using MahApps.Metro.Controls.Dialogs;
-using YetAnotherLosslessCutter.FFProbe;
 using YetAnotherLosslessCutter.MVVM;
 
 namespace YetAnotherLosslessCutter
 {
     sealed class MainWindowVM : ViewModelBase
     {
+        //Media player
+        public FlyleafLib.MediaPlayer.Player HostPlayer { get; set; }
+        public FlyleafLib.Config Config { get; set; }
 
-        readonly FfprobeUtil ffprobe = new FfprobeUtil();
         readonly MainWindow host;
 
         Track TimeLineTrack => host.TimelineSlider.Template.FindName("PART_Track", host.TimelineSlider) as Track;
@@ -28,20 +30,82 @@ namespace YetAnotherLosslessCutter
             AnimateShow = false
         };
         public string Title => $"YALC - {YALCConstants.ASSEMBLY_INFORMATIONAL_VERSION}";
-        MediaInfo SourceInfo;
+        TimeSpan SourceDuration;
+        float SourceFrameRate;
 
         public MainWindowVM(MainWindow mainWindow)
         {
+            //Media player
+            FlyleafLib.Engine.Start(new FlyleafLib.EngineConfig()
+            {
+                //PluginsPath = ":Plugins",
+                FFmpegPath = ":FFmpeg",
+
+                // Use UIRefresh to update Stats/BufferDuration (and CurTime more frequently than a second)
+                UIRefresh = true,
+                UIRefreshInterval = 100,
+                UICurTimePerSecond = false // If set to true it updates when the actual timestamps second change rather than a fixed interval
+            });
+
             host = mainWindow;
-            host.InputBindings.Add(new KeyBinding(Jump1FrameForward, new KeyGesture(Key.Right, ModifierKeys.None)));
+            host.InputBindings.Add(new KeyBinding(Jump1FrameForward, new KeyGesture(Key.Right, ModifierKeys.Shift | ModifierKeys.Control)));
             host.InputBindings.Add(new KeyBinding(JumpXSecondForward, new KeyGesture(Key.Right, ModifierKeys.Control)) { CommandParameter = 1 });
             host.InputBindings.Add(new KeyBinding(JumpXSecondForward, new KeyGesture(Key.Right, ModifierKeys.Shift)) { CommandParameter = 10 });
-            host.InputBindings.Add(new KeyBinding(JumpXSecondForward, new KeyGesture(Key.Right, ModifierKeys.Shift | ModifierKeys.Control)) { CommandParameter = 60 });
+            host.InputBindings.Add(new KeyBinding(JumpXSecondForward, new KeyGesture(Key.Right, ModifierKeys.None)) { CommandParameter = 60 });
 
-            host.InputBindings.Add(new KeyBinding(Jump1FrameBackward, new KeyGesture(Key.Left, ModifierKeys.None)));
+            host.InputBindings.Add(new KeyBinding(Jump1FrameBackward, new KeyGesture(Key.Left, ModifierKeys.Shift | ModifierKeys.Control)));
             host.InputBindings.Add(new KeyBinding(JumpXSecondBackward, new KeyGesture(Key.Left, ModifierKeys.Control)) { CommandParameter = 1 });
             host.InputBindings.Add(new KeyBinding(JumpXSecondBackward, new KeyGesture(Key.Left, ModifierKeys.Shift)) { CommandParameter = 1 });
-            host.InputBindings.Add(new KeyBinding(JumpXSecondBackward, new KeyGesture(Key.Left, ModifierKeys.Shift | ModifierKeys.Control)) { CommandParameter = 60 });
+            host.InputBindings.Add(new KeyBinding(JumpXSecondBackward, new KeyGesture(Key.Left, ModifierKeys.None)) { CommandParameter = 60 });
+
+            LoadVideoFileFromCommandline();
+        }
+
+        internal void MainWindowLoaded()
+        {
+            Config = new FlyleafLib.Config();
+            Config.Player.AutoPlay = false;
+            HostPlayer = new(Config);
+            OnPropertyChanged(nameof(HostPlayer));
+
+            //Show first frame instead of black screen
+            HostPlayer.OpenCompleted += (o, e) =>
+            {
+                if (e.Success)
+                {
+                    HostPlayer.Seek(0);
+                }
+            };
+            HostPlayer.OpenCompleted += HostPlayer_OpenCompleted;
+        }
+        private void HostPlayer_OpenCompleted(object sender, FlyleafLib.MediaPlayer.OpenCompletedArgs e)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (e.Success)
+                {
+                    HostPlayer.Audio.Volume = 0;
+                    WaitForDurationInfo();
+                }
+                else if (e.Error != "Cancelled")
+                {
+                        SourceFile = null;
+                }
+            });
+        }
+        async void LoadVideoFileFromCommandline()
+        {
+            foreach (var s in Environment.GetCommandLineArgs())
+            {
+                var file = s.Trim('\"');
+                if (file.EndsWith(".dll") || file.EndsWith(".exe")) continue;
+                if (File.Exists(file))
+                {
+                    await Task.Delay(1000);
+                    SourceFile = file;
+                    break;
+                }
+            }
         }
 
 
@@ -92,7 +156,6 @@ namespace YetAnotherLosslessCutter
         }
 
 
-
         string _SourceFileName;
 
         public string SourceFileName
@@ -111,9 +174,7 @@ namespace YetAnotherLosslessCutter
                 if (!Set(ref _SourceFile, value)) return;
                 if (string.IsNullOrEmpty(value))
                 {
-                    host.MediaElement1.Stop();
-                    host.MediaElement1.Close();
-                    host.MediaElement1.Source = null;
+                    HostPlayer.Stop();
                     ProjectSegmentList.Clear();
                     SourceFileName = string.Empty;
                     host.CutMarker.X1 = 0d;
@@ -122,32 +183,36 @@ namespace YetAnotherLosslessCutter
                     return;
                 }
 
-                SourceFileName = Path.GetFileName(_SourceFile);
-                SourceInfo = ffprobe.GetInfos(_SourceFile);
-                var project = new VideoSegment(host) { SourceFile = _SourceFile, MaxDuration = SourceInfo.Duration };
-                host.TimelineSlider.Maximum = SourceInfo.Duration.TotalMilliseconds;
-                host.TimelineSlider.Value = 0;
-                ProjectSegmentList.Add(project);
-                SelectedSegment = project;
-                OnPropertyChanged(nameof(Title));
-                host.MediaElement1.Source = new Uri(_SourceFile);
-                host.MediaElement1.Play();
-                host.MediaElement1.Pause();
-                CommandManager.InvalidateRequerySuggested();
+                SourceFileName = $"{Path.GetFileName(_SourceFile)} ({Utils.ToBytes(new FileInfo(_SourceFile).Length)})";
+
+                HostPlayer.OpenAsync(_SourceFile);
             }
+        }
+        void WaitForDurationInfo()
+        {
+            SourceFrameRate = (float)HostPlayer.Video.FPS;
+            SourceDuration = TimeSpan.FromTicks(HostPlayer.Duration);
+            var project = new VideoSegment(host) { SourceFile = _SourceFile, MaxDuration = SourceDuration };
+            host.TimelineSlider.Maximum = SourceDuration.TotalMilliseconds;
+
+            host.TimelineSlider.Value = 0;
+            ProjectSegmentList.Add(project);
+            SelectedSegment = project;
+            OnPropertyChanged(nameof(Title));
+            CommandManager.InvalidateRequerySuggested();
         }
 
         public DelegateCommand SetLeftPosition => new DelegateCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            SelectedSegment.CutFrom = host.MediaElement1.Position;
+            SelectedSegment.CutFrom = TimeSpan.FromTicks(HostPlayer.CurTime);
             MarkerTimeline(0);
         });
 
         public DelegateCommand SetRightPosition => new DelegateCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            SelectedSegment.CutTo = host.MediaElement1.Position;
+            SelectedSegment.CutTo = TimeSpan.FromTicks(HostPlayer.CurTime);
             MarkerTimeline(1);
 
         });
@@ -157,8 +222,8 @@ namespace YetAnotherLosslessCutter
             var project = new VideoSegment(host)
             {
                 SourceFile = SourceFile,
-                MaxDuration = SourceInfo.Duration,
-                CutTo = SourceInfo.Duration,
+                MaxDuration = SourceDuration,
+                CutTo = SourceDuration,
                 CutFrom = SelectedSegment?.CutTo ?? TimeSpan.Zero,
             };
             ProjectSegmentList.Add(project);
@@ -169,9 +234,14 @@ namespace YetAnotherLosslessCutter
         public async void DeleteSegment(VideoSegment segment)
         {
             if (segment == null) return;
-            var result = await host.ShowMessageAsync("Confirmation", "Remove segment from list?",
+            if (Settings.Instance.ShowConfirmationPrompts)
+            {
+                host.MediaHost.Visibility = Visibility.Hidden;
+                var result = await host.ShowMessageAsync("Confirmation", "Remove segment from list?",
                 MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
-            if (result != MessageDialogResult.Affirmative) return;
+                host.MediaHost.Visibility = Visibility.Visible;
+                if (result != MessageDialogResult.Affirmative) return;
+            }
             if (segment == SelectedSegment)
                 SelectedSegment = null;
             ProjectSegmentList.Remove(segment);
@@ -179,18 +249,28 @@ namespace YetAnotherLosslessCutter
         public async void DeleteSegmentFromQueue(VideoSegment segment)
         {
             if (segment == null) return;
-            var result = await host.ShowMessageAsync("Confirmation", "Remove segment from queue?",
+            if (Settings.Instance.ShowConfirmationPrompts)
+            {
+                host.MediaHost.Visibility = Visibility.Hidden;
+                var result = await host.ShowMessageAsync("Confirmation", "Remove segment from queue?",
                 MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
-            if (result != MessageDialogResult.Affirmative) return;
+                host.MediaHost.Visibility = Visibility.Visible;
+                if (result != MessageDialogResult.Affirmative) return;
+            }
             segment.MarkedForDeletion = true;
             ProcessingQueueList.Remove(segment);
         }
 
         public DelegateCommand RemoveAllSegments => new DelegateCommand(async () =>
         {
-            var result = await host.ShowMessageAsync("Confirmation", "Clear segment list?",
-                MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
-            if (result != MessageDialogResult.Affirmative) return;
+            if (Settings.Instance.ShowConfirmationPrompts)
+            {
+                host.MediaHost.Visibility = Visibility.Hidden;
+                var result = await host.ShowMessageAsync("Confirmation", "Clear segment list?",
+                    MessageDialogStyle.AffirmativeAndNegative, settings: dialogSettings);
+                host.MediaHost.Visibility = Visibility.Visible;
+                if (result != MessageDialogResult.Affirmative) return;
+            }
             SelectedSegment = null;
             ProjectSegmentList.Clear();
         });
@@ -199,26 +279,26 @@ namespace YetAnotherLosslessCutter
          {
              if (string.IsNullOrEmpty(SourceFile)) return;
              if (SelectedSegment.CurrentPosition + TimeSpan.FromSeconds(i) >
-                 SourceInfo.Duration)
-                 SelectedSegment.CurrentPosition = SourceInfo.Duration;
+                 SourceDuration)
+                 SelectedSegment.CurrentPosition = SourceDuration;
              else
                  SelectedSegment.CurrentPosition += TimeSpan.FromSeconds(i);
          });
         public DelegateCommand Jump1FrameForward => new DelegateCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            if (SelectedSegment.CurrentPosition + TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate) > SourceInfo.Duration)
-                SelectedSegment.CurrentPosition = SourceInfo.Duration;
+            if (SelectedSegment.CurrentPosition + TimeSpan.FromMilliseconds(SourceFrameRate) > SourceDuration)
+                SelectedSegment.CurrentPosition = SourceDuration;
             else
-                SelectedSegment.CurrentPosition += TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
+                SelectedSegment.CurrentPosition += TimeSpan.FromMilliseconds(SourceFrameRate);
         });
         public DelegateCommand Jump1FrameBackward => new DelegateCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
-            if (SelectedSegment.CurrentPosition - TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate) < TimeSpan.Zero)
+            if (SelectedSegment.CurrentPosition - TimeSpan.FromMilliseconds(SourceFrameRate) < TimeSpan.Zero)
                 SelectedSegment.CurrentPosition = TimeSpan.Zero;
             else
-                SelectedSegment.CurrentPosition -= TimeSpan.FromMilliseconds(SourceInfo.Streams[0].FrameRate);
+                SelectedSegment.CurrentPosition -= TimeSpan.FromMilliseconds(SourceFrameRate);
         });
 
         public DelegateCommand<int> JumpXSecondBackward => new DelegateCommand<int>((i) =>
@@ -230,8 +310,8 @@ namespace YetAnotherLosslessCutter
                 SelectedSegment.CurrentPosition -= TimeSpan.FromSeconds(i);
         });
 
-        public DelegateCommand PlayVideo => new DelegateCommand(() => host.MediaElement1.Play());
-        public DelegateCommand PauseVideo => new DelegateCommand(() => host.MediaElement1.Pause());
+        public DelegateCommand PlayVideo => new DelegateCommand(() => HostPlayer.Play());
+        public DelegateCommand PauseVideo => new DelegateCommand(() => HostPlayer.Pause());
         public DelegateCommand CreateGIF => new DelegateCommand(async () =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
@@ -239,17 +319,6 @@ namespace YetAnotherLosslessCutter
             if (sfd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
 
             await FfmpegUtil.CreateGIF(SourceFile, sfd.FileName, SelectedSegment.CutFrom, SelectedSegment.CutTo, -1);
-        });
-        public DelegateCommand ReloadVideo => new DelegateCommand(() =>
-        {
-            if (string.IsNullOrEmpty(SourceFile)) return;
-            var currentPos = host.MediaElement1.Position;
-            host.MediaElement1.Close();
-            host.MediaElement1.Source = null;
-            host.MediaElement1.Source = new Uri(SourceFile);
-            host.MediaElement1.Play();
-            host.MediaElement1.Pause();
-            host.MediaElement1.Position = currentPos;
         });
 
         public DelegateCommand CheckForUpdate => new DelegateCommand(async () =>
@@ -273,6 +342,7 @@ namespace YetAnotherLosslessCutter
         public DelegateCommand CutVideo => new DelegateCommand(() =>
         {
             if (string.IsNullOrEmpty(SourceFile)) return;
+            string file = new(SourceFile);
             while (ProjectSegmentList.Count > 0)
             {
                 ProjectSegmentList[0].Status = ProgressStatus.Waiting;
@@ -280,6 +350,7 @@ namespace YetAnotherLosslessCutter
                 ProcessingQueue.Enqueue(ProjectSegmentList[0]);
                 ProjectSegmentList.RemoveAt(0);
             }
+            this.SaveQueue();
             if (Settings.Instance.AutoStartQueue)
                 StartQueue.Execute();
         });
@@ -339,13 +410,12 @@ namespace YetAnotherLosslessCutter
         public void LoadSourceFile(string file)
         {
             if (!File.Exists(file)) return;
-            SourceFile = null;
             SourceFile = file;
         }
 
         void MarkerTimeline(int pos)
         {
-            if (string.IsNullOrEmpty(SourceFile) == false && host.MediaElement1.NaturalDuration.HasTimeSpan)
+            if (string.IsNullOrEmpty(SourceFile) == false)
             {
 
                 Point relativePoint = TimeLineTrack.Thumb.TransformToAncestor(host.TimelineGrid)
@@ -386,12 +456,16 @@ namespace YetAnotherLosslessCutter
             while (ProcessingQueue.TryDequeue(out var videoSegment))
             {
                 if (videoSegment.MarkedForDeletion) continue;
+                this.SaveQueue();
+
                 host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
                 var result = await videoSegment.Cut();
                 if (result.Success == false)
                 {
                     host.TaskbarInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Error;
+                    host.MediaHost.Visibility = Visibility.Hidden;
                     await host.ShowMessageAsync("Error", result.Error.ToString(), settings: dialogSettings);
+                    host.MediaHost.Visibility = Visibility.Visible;
                 }
                 else
                 {
@@ -443,14 +517,40 @@ namespace YetAnotherLosslessCutter
                                 File.Delete(videoSegment.SourceFile);
                                 return true;
                             }, TimeSpan.FromSeconds(0.5));
+
                             if (!success)
-                                throw new TimeoutException($"Failed to delete {SourceFile}");
+                            {
+                                try
+                                {
+                                    result.Ffmpeg.FfmpegProcess.Kill();
+                                }
+                                catch { }
+                            }
+                            await Task.Delay(1000);
+                            success = Do(() =>
+                            {
+                                try
+                                {
+                                    File.Delete(videoSegment.SourceFile);
+                                    return true;
+                                }
+                                catch (Exception)
+                                {
+                                    return false;
+                                }
+                            }, TimeSpan.FromSeconds(0.5));
                         }
                         catch (Exception ex)
                         {
+                            host.MediaHost.Visibility = Visibility.Hidden;
                             await host.ShowMessageAsync("Failed to delete file", ex.ToString(), settings: dialogSettings);
+                            host.MediaHost.Visibility = Visibility.Visible;
                         }
                     }
+                    result.Ffmpeg.FfmpegProcess.Dispose();
+                    result.Ffmpeg.FfmpegProcess = null;
+                    result.Ffmpeg = null;
+
                     fileList.Add(videoSegment);
                 }
 

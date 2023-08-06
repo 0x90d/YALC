@@ -9,14 +9,14 @@
     xmlns:local="clr-namespace:YetAnotherLosslessCutter"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
-    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" xmlns:fl="clr-namespace:FlyleafLib.Controls.WPF;assembly=FlyleafLib"
     Title="{Binding Title}"
     Width="1300"
     Height="800"
     AllowDrop="True"
     Background="Black"
     Icon="icon.ico"
-    OverlayBrush="{StaticResource MahApps.Brushes.SemiTransparentGray}"
+    OverlayBrush="{StaticResource MahApps.Brushes.Gray.SemiTransparent}"
     PreviewDragEnter="mediaPlayerElement_DragOver"
     PreviewDragOver="mediaPlayerElement_DragOver"
     PreviewDrop="mediaPlayerElement_Drop"
@@ -77,31 +77,31 @@
                         <RowDefinition />
                     </Grid.RowDefinitions>
                     <StackPanel>
-                        <TextBlock HorizontalAlignment="Center">
-                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Duration: </Run>
-                            <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                        </TextBlock>
-
                         <TextBlock
                             Margin="0,5,0,0"
                             HorizontalAlignment="Center"
                             Foreground="LightGray">
-                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">Start: </Run>
+                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.IdealForegroundDisabled}">Start: </Run>
                             <Run Text="{Binding CutFrom, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}"> ~ End: </Run>
+                        </TextBlock>
+                        <TextBlock
+                            Margin="0,5,0,0"
+                            HorizontalAlignment="Center"
+                            Foreground="LightGray">
+                            <Run xml:space="preserve" Foreground="{StaticResource MahApps.Brushes.IdealForegroundDisabled}">End: </Run>
                             <Run Text="{Binding CutTo, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
                         </TextBlock>
                     </StackPanel>
                     <Viewbox
                         Grid.Row="1"
-                        Width="220"
+                        Width="180"
                         Height="3"
                         Margin="0,10,0,0"
                         Stretch="Fill">
                         <Grid>
                             <Border
                                 Width="{Binding DurationWidth, Mode=OneWay}"
-                                BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                                BorderBrush="{StaticResource MahApps.Brushes.SemiTransparent}"
                                 BorderThickness="2" />
                             <Path
                                 Width="{Binding MarkerRange, Mode=OneWay}"
@@ -141,13 +141,15 @@
                     Height="1"
                     Margin="0,10,0,5"
                     SnapsToDevicePixels="True"
-                    Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                    Stroke="{StaticResource MahApps.Brushes.SemiTransparent}"
                     StrokeDashArray="8 8"
                     StrokeThickness="1" />
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="QueueItemTemplate">
-            <Grid Margin="0,5,0,0" Background="Transparent">
+            <Grid Margin="0,5,0,0" Background="Transparent" 
+                ToolTip="{Binding SourceFileName}"
+                ToolTipService.InitialShowDelay="200">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseEnter">
                         <i:ChangePropertyAction PropertyName="Visibility" TargetObject="{Binding ElementName=DeleteSegmenButton}">
@@ -195,31 +197,31 @@
                         <RowDefinition />
                     </Grid.RowDefinitions>
                     <StackPanel>
-                        <TextBlock HorizontalAlignment="Center" Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">
-                            <Run xml:space="preserve">Duration: </Run>
-                            <Run Text="{Binding CutDuration, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                        </TextBlock>
-
                         <TextBlock
                             Margin="0,5,0,0"
                             HorizontalAlignment="Center"
-                            Foreground="{StaticResource MahApps.Brushes.DarkIdealForegroundDisabled}">
+                            Foreground="{StaticResource MahApps.Brushes.IdealForegroundDisabled}">
                             <Run xml:space="preserve">Start: </Run>
                             <Run Text="{Binding CutFrom, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
-                            <Run xml:space="preserve"> ~ End: </Run>
+                        </TextBlock>
+                        <TextBlock
+                            Margin="0,5,0,0"
+                            HorizontalAlignment="Center"
+                            Foreground="{StaticResource MahApps.Brushes.IdealForegroundDisabled}">
+                            <Run xml:space="preserve">End: </Run>
                             <Run Text="{Binding CutTo, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" />
                         </TextBlock>
                     </StackPanel>
                     <Viewbox
                         Grid.Row="1"
-                        Width="220"
+                        Width="180"
                         Height="3"
                         Margin="0,10,0,0"
                         Stretch="Fill">
                         <Grid>
                             <Border
                                 Width="{Binding DurationWidth, Mode=OneWay}"
-                                BorderBrush="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                                BorderBrush="{StaticResource MahApps.Brushes.SemiTransparent}"
                                 BorderThickness="2" />
                             <Path
                                 Width="{Binding MarkerRange, Mode=OneWay}"
@@ -295,9 +297,14 @@
                     Grid.ColumnSpan="2"
                     Height="1"
                     SnapsToDevicePixels="True"
-                    Stroke="{StaticResource MahApps.Brushes.SemiTransparentWhite}"
+                    Stroke="{StaticResource MahApps.Brushes.SemiTransparent}"
                     StrokeDashArray="8 8"
                     StrokeThickness="1" />
+                <Grid.ContextMenu>
+                    <ContextMenu DataContext="{Binding Path=PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Command="{Binding OpenInExplorer}" Header="Open Source File In Explorer" />
+                    </ContextMenu>
+                </Grid.ContextMenu>
             </Grid>
         </DataTemplate>
     </Window.Resources>
@@ -343,45 +350,54 @@
                             Margin="5"
                             Content="Merge segments"
                             FontSize="12"
-                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=MergeSegments}"
-                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                            IsOn="{Binding Source={x:Static local:Settings.Instance}, Path=MergeSegments}"/>
                         <Controls:ToggleSwitch
                             Margin="5"
                             Content="Remove Audio"
                             FontSize="12"
-                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=RemoveAudio}"
-                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                            IsOn="{Binding Source={x:Static local:Settings.Instance}, Path=RemoveAudio}"
+                             />
                         <Controls:ToggleSwitch
                             Margin="5"
                             Content="Delete Source File From Disk After Finished"
                             FontSize="12"
-                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=DeleteSourceFileAfterDone}"
-                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                            IsOn="{Binding Source={x:Static local:Settings.Instance}, Path=DeleteSourceFileAfterDone}"
+                             />
                         <Controls:ToggleSwitch
                             Margin="5"
                             Content="Include All Streams"
                             FontSize="12"
-                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=IncludeAllStreams}"
-                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                            IsOn="{Binding Source={x:Static local:Settings.Instance}, Path=IncludeAllStreams}"
+                             />
                         <Separator Margin="0,10,0,10" />
                         <Controls:ToggleSwitch
                             Margin="5"
                             Content="Auto Start Queue"
                             FontSize="12"
-                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=AutoStartQueue}"
-                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                            IsOn="{Binding Source={x:Static local:Settings.Instance}, Path=AutoStartQueue}"
+                             />
                         <Controls:ToggleSwitch
                             Margin="5"
                             Content="Remove Finished Segments From List"
                             FontSize="12"
-                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=RemoveFinishedSegments}"
-                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                            IsOn="{Binding Source={x:Static local:Settings.Instance}, Path=RemoveFinishedSegments}"
+                             />
                         <Controls:ToggleSwitch
                             Margin="5"
                             Content="Save To Source Folder"
                             FontSize="12"
-                            IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=SaveToSourceFolder}"
-                            Style="{StaticResource MahApps.Styles.ToggleSwitch.Win10}" />
+                            IsOn="{Binding Source={x:Static local:Settings.Instance}, Path=SaveToSourceFolder}"
+                             />
+                        <Controls:ToggleSwitch
+                            Margin="5"
+                            Content="Low Process Priority"
+                            FontSize="12"
+                            IsOn="{Binding Source={x:Static local:Settings.Instance}, Path=LowCuttingProcessPriority}" />
+                        <Controls:ToggleSwitch
+                            Margin="5"
+                            Content="Show Confirmation prompts"
+                            FontSize="12"
+                            IsOn="{Binding Source={x:Static local:Settings.Instance}, Path=ShowConfirmationPrompts}" />
                         <StackPanel Orientation="Horizontal">
                             <TextBox
                                 MinWidth="200"
@@ -526,7 +542,7 @@
                                         Margin="5,0,0,0"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        Kind="Settings" />
+                                        Kind="Cog" />
                                     <TextBlock
                                         Margin="5,0,5,0"
                                         HorizontalAlignment="Center"
@@ -554,13 +570,12 @@
                     HorizontalAlignment="Center"
                     Text="{Binding SourceFileName}" />
             </Grid>
-            <MediaElement
-                x:Name="MediaElement1"
+            <fl:FlyleafHost
+                x:Name="MediaHost"
                 Grid.Row="1"
-                LoadedBehavior="Manual"
-                ScrubbingEnabled="True"
-                Volume="0" />
-            <Grid Grid.Row="2" Background="{StaticResource MahApps.Brushes.SemiTransparentGray}">
+                KeyBindings="Surface"
+                Player="{Binding HostPlayer}" />
+            <Grid Grid.Row="2" Background="{StaticResource MahApps.Brushes.SemiTransparent}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition />
@@ -593,7 +608,7 @@
                         CommandParameter="{StaticResource Integer60}"
                         Content="&lt;&lt;&lt;&lt;"
                         Focusable="False"
-                        ToolTip="Jump 60 second backward (Shift+Ctrl+Left Arrow)" />
+                            ToolTip="Jump 60 second backward (Left Arrow)" />
                     <Button
                         MinWidth="25"
                         Background="Transparent"
@@ -619,7 +634,7 @@
                         Command="{Binding Jump1FrameBackward}"
                         Content="&lt;"
                         Focusable="False"
-                        ToolTip="Jump 1 frame backward (Left Arrow)" />
+                            ToolTip="Jump 1 frame backward (Shift+Ctrl+Left Arrow)" />
                     <Button
                         MinWidth="25"
                         Background="Transparent"
@@ -627,7 +642,7 @@
                         Command="{Binding Jump1FrameForward}"
                         Content="&gt;"
                         Focusable="False"
-                        ToolTip="Jump 1 frame forward (Right Arrow)" />
+                            ToolTip="Jump 1 frame forward (Shift+Ctrl+Right Arrow)"  />
                     <Button
                         MinWidth="25"
                         Background="Transparent"
@@ -638,6 +653,7 @@
                         Focusable="False"
                         ToolTip="Jump 1 second forward (Ctrl+Right Arrow)" />
                     <Button
+                            x:Name="ButtonJumpTenSecondsForward"
                         MinWidth="25"
                         Background="Transparent"
                         BorderThickness="0"
@@ -645,8 +661,11 @@
                         CommandParameter="{StaticResource Integer10}"
                         Content="&gt;&gt;&gt;"
                         Focusable="False"
-                        ToolTip="Jump 10 second forward (Shift+Right Arrow)" />
+                            PreviewMouseLeftButtonDown="ButtonJumpTenSecondsForward_PreviewMouseLeftButtonDown"
+                            PreviewMouseRightButtonDown="ButtonJumpTenSecondsForward_PreviewMouseRightButtonDown"
+                        ToolTip="Jump 10 second forward (Shift+Right Arrow). Right click on it to toggle auto pressing" />
                     <Button
+                            x:Name="ButtonJumpMinuteForward"
                         MinWidth="25"
                         Background="Transparent"
                         BorderThickness="0"
@@ -654,7 +673,9 @@
                         CommandParameter="{StaticResource Integer60}"
                         Content="&gt;&gt;&gt;&gt;"
                         Focusable="False"
-                        ToolTip="Jump 60 second forward (Shift+Ctrl+Right Arrow)" />
+                            PreviewMouseLeftButtonDown="ButtonJumpMinuteForward_PreviewMouseLeftButtonDown"
+                            PreviewMouseRightButtonDown="Button_PreviewMouseRightButtonDown"
+                            ToolTip="Jump 60 second forward (Right Arrow). Right click on it to toggle auto pressing" />
                 </StackPanel>
                 <StackPanel
                     Grid.Column="2"
@@ -685,18 +706,6 @@
                             VerticalAlignment="Center"
                             Kind="Pause" />
                     </Button>
-                    <Button
-                        MinWidth="25"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Command="{Binding ReloadVideo}"
-                        Focusable="False"
-                        ToolTip="Reopens the current video, in case playback stucks">
-                        <iconPacks:PackIconMaterial
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Kind="Reload" />
-                    </Button>
                 </StackPanel>
             </Grid>
             <Grid Grid.Row="3" Background="#292C34">
@@ -714,7 +723,7 @@
                         x:Name="TimelineSlider"
                         Controls:SliderHelper.ChangeValueBy="LargeChange"
                         Controls:SliderHelper.EnableMouseWheel="MouseHover"
-                        Controls:SliderHelper.ThumbFillBrush="{StaticResource MahApps.Brushes.AccentSelectedColor}"
+                        Controls:SliderHelper.ThumbFillBrush="{StaticResource MahApps.Brushes.Selected.Foreground}"
                         Controls:SliderHelper.TrackValueFillBrush="{StaticResource MahApps.Brushes.Gray3}"
                         Controls:SliderHelper.TrackValueFillHoverBrush="{StaticResource MahApps.Brushes.Gray3}"
                         Controls:SliderHelper.TrackValueFillPressedBrush="{StaticResource MahApps.Brushes.Gray3}"

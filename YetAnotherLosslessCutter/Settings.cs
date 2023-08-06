@@ -87,5 +87,26 @@ namespace YetAnotherLosslessCutter
             get => _OutputDirectory;
             set => Set(ref _OutputDirectory, value);
         }
+        int _AutoPreviewValue = 100;
+        [JsonPropertyName("AutoPreviewValue")]
+        public int AutoPreviewValue
+        {
+            get => _AutoPreviewValue;
+            set => Set(ref _AutoPreviewValue, value);
+        }
+        private bool _LowCuttingProcessPriority;
+        [JsonPropertyName("LowCuttingProcessPriority")]
+        public bool LowCuttingProcessPriority
+        {
+            get => _LowCuttingProcessPriority;
+            set => Set(ref _LowCuttingProcessPriority, value);
+        }
+        private bool _ShowConfirmationPrompts = true;
+        [JsonPropertyName("ShowConfirmationPrompts")]
+        public bool ShowConfirmationPrompts
+        {
+            get => _ShowConfirmationPrompts;
+            set => Set(ref _ShowConfirmationPrompts, value);
+        }
     }
 }

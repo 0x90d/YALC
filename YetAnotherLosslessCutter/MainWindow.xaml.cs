@@ -1,8 +1,15 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
+using System.Windows.Controls;
 using System.Windows.Input;
+using YetAnotherLosslessCutter.MVVM;
 
 namespace YetAnotherLosslessCutter
 {
@@ -18,43 +25,41 @@ namespace YetAnotherLosslessCutter
             vm = new MainWindowVM(this);
             DataContext = vm;
             InitializeComponent();
+            ((MainWindowVM)DataContext).MainWindowLoaded();
             Closing += MainWindow_Closing;
             Loaded += MainWindow_Loaded;
 
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             if (loadedItems) return;
             loadedItems = true;
 
             var dirInfo = new DirectoryInfo(Path.Combine(Settings.CurrentFolder, "Queue"));
             if (!dirInfo.Exists) return;
-            var jsonOptions = new JsonSerializerOptions();
-            //https://github.com/dotnet/corefx/issues/38641
-            jsonOptions.Converters.Add(new TimeSpanConverter());
-            foreach (var segmentFile in dirInfo.GetFiles("*.json"))
+
+            foreach (var segmentFile in dirInfo.GetFiles("*.json").OrderBy(x => x.LastWriteTime))
             {
-                vm.ProcessingQueueList.Add(JsonSerializer.Deserialize<VideoSegment>(File.ReadAllText(segmentFile.FullName), jsonOptions));
+                var segment = JsonSerializer.Deserialize<VideoSegment>(File.ReadAllText(segmentFile.FullName));
+                segment.Status = ProgressStatus.Failed;
+                segment.Progress = 0d;
+                segment.initialized = true;
+                vm.ProcessingQueueList.Add(segment);
+            }
+            while (MediaHost.Surface == null)
+            {
+                await Task.Delay(1000);
             }
 
+            MediaHost.Surface.AllowDrop = true;
+            MediaHost.Surface.DragOver += mediaPlayerElement_DragOver;
+            MediaHost.Surface.Drop += mediaPlayerElement_Drop;
         }
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            //Save unfinished items
-            if (vm.ProcessingQueueList.Count > 0)
-            {
-                var dirInfo = new DirectoryInfo(Path.Combine(Settings.CurrentFolder, "Queue"));
-                if (!dirInfo.Exists)
-                    dirInfo.Create();
-                for (int i = 0; i < vm.ProcessingQueueList.Count; i++)
-                {
-                    if (vm.ProcessingQueueList[i].Status == ProgressStatus.Finished) continue;
-                    File.WriteAllText(Path.Combine(dirInfo.FullName, Path.GetFileNameWithoutExtension(vm.ProcessingQueueList[i].OutputFile) + ".json"),
-                        JsonSerializer.Serialize(vm.ProcessingQueueList[i]));
-                }
-            }
+            vm.SaveQueue();
             Settings.SaveSettings();
         }
 
@@ -78,6 +83,55 @@ namespace YetAnotherLosslessCutter
         {
             if (vm.SelectedSegment != null)
                 vm.SelectedSegment.CurrentPosition = TimeSpan.FromMilliseconds(TimelineSlider.Value);
+        }
+
+
+        internal bool autoPreview;
+        private void Button_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!autoPreview)
+                RunAutoPreview(ButtonJumpMinuteForward);
+            else
+                autoPreview = false;
+        }
+        private void ButtonJumpTenSecondsForward_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!autoPreview)
+                RunAutoPreview(ButtonJumpTenSecondsForward);
+            else
+                autoPreview = false;
+        }
+        async void RunAutoPreview(Button button)
+        {
+            autoPreview = true;
+            ButtonAutomationPeer peer = new ButtonAutomationPeer(button);
+            IInvokeProvider invokeProv = peer.GetPattern(PatternInterface.Invoke) as IInvokeProvider;
+            while (autoPreview)
+            {
+                Application.Current.Invoke(() =>
+                {
+                    invokeProv.Invoke();
+                });
+                await Task.Delay(Settings.Instance.AutoPreviewValue);
+                if (TimelineSlider.Value >= TimelineSlider.Maximum)
+                    autoPreview = false;
+            }
+        }
+
+        private void ButtonJumpTenSecondsForward_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!Keyboard.IsKeyDown(Key.LeftCtrl))
+                return;
+            e.Handled = true;
+            ButtonJumpTenSecondsForward_PreviewMouseRightButtonDown(sender, e);
+        }
+
+        private void ButtonJumpMinuteForward_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!Keyboard.IsKeyDown(Key.LeftCtrl))
+                return;
+            e.Handled = true;
+            Button_PreviewMouseRightButtonDown(sender, e);
         }
     }
 }

@@ -8,7 +8,7 @@ using System.Reflection;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("YALC")]
-[assembly: AssemblyCopyright("Copyright © 2019")]
+[assembly: AssemblyCopyright("Copyright © 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -21,7 +21,7 @@ using System.Reflection;
 
 static class YALCConstants
 {
-    public const string ASSEMBLY_VERSION = "1.0.3.0";
-    public const string ASSEMBLY_INFORMATIONAL_VERSION = "v1.0.3";
+    public const string ASSEMBLY_VERSION = "1.0.5.0";
+    public const string ASSEMBLY_INFORMATIONAL_VERSION = "v1.0.5";
     public const string ASSEMBLY_FILE_VERSION = ASSEMBLY_VERSION;
 }

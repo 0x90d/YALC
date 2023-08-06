@@ -6,11 +6,13 @@ namespace YetAnotherLosslessCutter
     {
         public readonly bool Success;
         public readonly Exception Error;
+        public FfmpegUtil Ffmpeg;
 
-        public CuttingTaskResult(bool success, Exception error)
+        public CuttingTaskResult(bool success, Exception error, FfmpegUtil ffmpeg)
         {
             Success = success;
             Error = error;
+            Ffmpeg = ffmpeg;
         }
     }
 }

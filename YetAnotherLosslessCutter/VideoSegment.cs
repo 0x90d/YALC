@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -10,9 +11,14 @@ namespace YetAnotherLosslessCutter
 {
     sealed class VideoSegment : Segment
     {
+        internal bool initialized;
         readonly MainWindow host;
         public VideoSegment() => host = Application.Current.MainWindow as MainWindow;
-        public VideoSegment(MainWindow window) => host = window;
+        public VideoSegment(MainWindow window)
+        {
+            initialized = true;
+            host = window;
+        }
         [JsonIgnore]
         public DelegateCommand DeleteThisSegment => new DelegateCommand(() =>
         {
@@ -39,20 +45,31 @@ namespace YetAnotherLosslessCutter
 
             try
             {
-                await ffmpeg.Cut(this);
+                await ffmpeg.Cut(this, Settings.Instance.LowCuttingProcessPriority ?
+                                        System.Diagnostics.ProcessPriorityClass.BelowNormal :
+                                        System.Diagnostics.ProcessPriorityClass.Normal);
                 Status = ProgressStatus.Finished;
                 Progress = 0d;
-                return new CuttingTaskResult(true, null);
+                return new CuttingTaskResult(true, null, ffmpeg);
             }
             catch (Exception e)
             {
                 Progress = 0d;
                 Status = ProgressStatus.Failed;
-                return new CuttingTaskResult(false, e);
+                return new CuttingTaskResult(false, e, ffmpeg);
             }
 
 
         }
+        [JsonIgnore]
+        public DelegateCommand OpenInExplorer => new DelegateCommand(() =>
+        {
+            if (string.IsNullOrEmpty(SourceFile)) return;
+            Process.Start(new ProcessStartInfo("explorer.exe", $" /select, \"{SourceFile}\"")
+            {
+                UseShellExecute = true,
+            });
+        });
 
         public bool MarkedForDeletion;
 
@@ -77,8 +94,23 @@ namespace YetAnotherLosslessCutter
             }
 
         }
-        [JsonPropertyName("Thumbnail")]
+        [JsonPropertyName("Thumbnail"), JsonConverter(typeof(JsonImageSourceConverter))]
         public ImageSource Thumbnail { get; set; }
+
+        TimeSpan _MaxDuration;
+        [JsonPropertyName("SourceDuration")]
+        public TimeSpan MaxDuration
+        {
+            get => _MaxDuration;
+            set
+            {
+                if (!Set(ref _MaxDuration, value)) return;
+                OnPropertyChanged(nameof(DurationWidth));
+                _CutTo = _MaxDuration;
+                OnPropertyChanged(nameof(CutTo));
+                OnPropertyChanged(nameof(RightMarker));
+            }
+        }
 
         TimeSpan _CurrentPosition = TimeSpan.Zero;
         [JsonIgnore]
@@ -87,10 +119,10 @@ namespace YetAnotherLosslessCutter
             get => _CurrentPosition;
             set
             {
-                if (value > MaxDuration) value = MaxDuration;
+                if (initialized && value > MaxDuration) value = MaxDuration;
                 if (!Set(ref _CurrentPosition, value)) return;
                 host.TimelineSlider.Value = _CurrentPosition.TotalMilliseconds;
-                host.MediaElement1.Position = _CurrentPosition;
+                ((MainWindowVM)host.DataContext).HostPlayer.CurTime = _CurrentPosition.Ticks;
                 OnPropertyChanged(nameof(CurrentPositionDouble));
             }
         }
@@ -102,8 +134,8 @@ namespace YetAnotherLosslessCutter
             get => _CutFrom;
             set
             {
-                if (value > MaxDuration) value = MaxDuration;
-                if (value < TimeSpan.Zero) value = TimeSpan.Zero;
+                if (initialized && value > MaxDuration) value = MaxDuration;
+                if (initialized && value < TimeSpan.Zero) value = TimeSpan.Zero;
                 if (!Set(ref _CutFrom, value)) return;
                 CurrentPosition = _CutFrom;
                 OnPropertyChanged(nameof(LeftMarker));
@@ -125,29 +157,14 @@ namespace YetAnotherLosslessCutter
             get => _CutTo;
             set
             {
-                if (value < CutFrom) return;
-                if (value > MaxDuration) value = MaxDuration;
-                if (value < TimeSpan.Zero) value = TimeSpan.Zero;
+                if (initialized && value < CutFrom) return;
+                if (initialized && value > MaxDuration) value = MaxDuration;
+                if (initialized && value < TimeSpan.Zero) value = TimeSpan.Zero;
                 if (!Set(ref _CutTo, value)) return;
                 CurrentPosition = _CutTo;
                 OnPropertyChanged(nameof(RightMarker));
                 OnPropertyChanged(nameof(CutDuration));
                 OnPropertyChanged(nameof(DurationWidth));
-            }
-        }
-
-        TimeSpan _MaxDuration;
-        [JsonPropertyName("SourceDuration")]
-        public TimeSpan MaxDuration
-        {
-            get => _MaxDuration;
-            set
-            {
-                if (!Set(ref _MaxDuration, value)) return;
-                OnPropertyChanged(nameof(DurationWidth));
-                _CutTo = _MaxDuration;
-                OnPropertyChanged(nameof(CutTo));
-                OnPropertyChanged(nameof(RightMarker));
             }
         }
 

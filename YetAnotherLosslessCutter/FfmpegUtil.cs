@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FlyleafLib;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -20,37 +21,14 @@ namespace YetAnotherLosslessCutter
 
         static FfmpegStatics()
         {
-            var currentDir = Path.GetDirectoryName(typeof(FfmpegUtil).Assembly.Location);
-            var pathsEnv = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator);
+            var dirInfo = new DirectoryInfo(Path.Combine(Path.GetDirectoryName(Environment.ProcessPath), "FFmpeg"));
+            dirInfo.Create();
+            FfmpegPath = Path.Combine(dirInfo.FullName, "ffmpeg.exe");
 
-            if (File.Exists(currentDir + "\\bin\\ffmpeg.exe"))
-                FfmpegPath = currentDir + "\\bin\\ffmpeg";
-            else if (File.Exists(currentDir + "\\ffmpeg.exe"))
-                FfmpegPath = currentDir + "\\ffmpeg";
-
-            if (pathsEnv == null || !string.IsNullOrEmpty(FfmpegPath)) return;
-            foreach (var path in pathsEnv)
-            {
-                if (!Directory.Exists(path))
-                {
-                    continue;
-                }
-                try
-                {
-                    var files = new DirectoryInfo(path).GetFiles();
-
-                    if (string.IsNullOrEmpty(FfmpegPath))
-                        FfmpegPath = files.FirstOrDefault(x => x.Name.StartsWith("ffmpeg", true, CultureInfo.InvariantCulture))
-                                         ?.FullName ?? string.Empty;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+            if (!File.Exists(FfmpegPath)) { 
+                Process.Start(new ProcessStartInfo(dirInfo.FullName) { UseShellExecute = true });
+                MessageBox.Show($"Please download ffmpeg {MVVM.Utils.FfmpegVersionRequired} build and extract it into the 'FFmpeg' folder", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            if (string.IsNullOrEmpty(FfmpegPath))
-                MessageBox.Show("FFmpeg.exe is missing. Please download and put it into the same folder as this application.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
     public sealed class ProgressEventArgs : EventArgs
@@ -65,12 +43,13 @@ namespace YetAnotherLosslessCutter
     sealed class FfmpegUtil
     {
         public event Action<ProgressEventArgs> Progress;
+        public Process FfmpegProcess;
 
-        public async Task Cut(VideoSegment segment)
+        public async Task Cut(VideoSegment segment, ProcessPriorityClass priorityClass)
         {
             var commandLine = BuildCommandLine(segment);
 
-            using var ffmpegProcess = new Process
+            FfmpegProcess = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -81,13 +60,16 @@ namespace YetAnotherLosslessCutter
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
-                    WindowStyle = ProcessWindowStyle.Hidden
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                   
                 }
             };
 
-            ffmpegProcess.ErrorDataReceived += (sender, e) =>
+            var sb = new StringBuilder();
+            FfmpegProcess.ErrorDataReceived += (sender, e) =>
             {
                 if (e.Data == null) return;
+                sb.AppendLine(e.Data);
                 var c = FfmpegStatics.ProgressRegex.Matches(e.Data);
                 if (c.Count == 0 || c[0].Groups.Count < 2) return;
                 if (!TimeSpan.TryParse(c[0].Groups[1].Value, out TimeSpan progress)) return;
@@ -95,10 +77,29 @@ namespace YetAnotherLosslessCutter
                 Progress?.Invoke(new ProgressEventArgs(progress / segment.CutDuration));
             };
 
-            await ffmpegProcess.WaitForExitAsync(null);
+            FfmpegProcess.Start();
+            FfmpegProcess.PriorityClass = priorityClass;
 
-            if (ffmpegProcess.ExitCode != 0)
+            await FfmpegProcess.WaitForExitAsync(null);
+
+            if (FfmpegProcess.ExitCode != 0)
+            {
+                try
+                {
+                    string windowsTempPath = Path.GetTempPath();
+
+                    var filePath = Path.Combine(windowsTempPath, "file_" + DateTime.Now.ToFileTimeUtc() + ".txt");
+
+                    File.WriteAllText(filePath, $"{FfmpegStatics.FfmpegPath} {commandLine}{Environment.NewLine}{Environment.NewLine}{sb}");
+
+                    Process.Start(new ProcessStartInfo(filePath)
+                    {
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
                 throw new Exception("Failed to cut. Uncheck 'Include all streams' and try again. Otherwise run ffmpeg yourself and see what reports to you");
+            }
         }
 
         public static async Task Merge(string outputName, List<VideoSegment> files)
@@ -221,7 +222,7 @@ namespace YetAnotherLosslessCutter
             var sb = new StringBuilder();
             sb.Append(" -hide_banner");
             sb.Append($" -ss {segment.CutFrom}");
-            sb.Append($" -i \"{segment.SourceFile}\"");
+            sb.Append($" -i \"\\\\?\\{segment.SourceFile}\"");
             sb.Append($" -t {segment.CutDuration}");
             sb.Append(" -avoid_negative_ts make_zero");
 
@@ -239,7 +240,7 @@ namespace YetAnotherLosslessCutter
             sb.Append(" -map_metadata 0");
             sb.Append(" -ignore_unknown");
 
-            sb.Append($" -y \"{segment.OutputFile}\"");
+            sb.Append($" -y \"\\\\?\\{segment.OutputFile}\"");
 
             return sb.ToString();
         }
